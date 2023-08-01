@@ -9,8 +9,7 @@
  * https://sailsjs.com/config/bootstrap
  */
 
-module.exports.bootstrap = async function() {
-
+module.exports.bootstrap = async function () {
   // By convention, this is a good place to set up fake data during development.
   //
   // For example:
@@ -27,4 +26,12 @@ module.exports.bootstrap = async function() {
   // ]);
   // ```
 
+  if (process.env.NODE_ENV === "production") {
+    // In production, do not seed the database with dummy data
+    return;
+  }
+
+  // Call the seeders
+  await require("../seeders/UserSeeder")();
+  await require("../seeders/PostSeeder")();
 };
