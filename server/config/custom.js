@@ -9,14 +9,16 @@
  */
 
 module.exports.custom = {
-
   /***************************************************************************
-  *                                                                          *
-  * Any other custom config this Sails app should use during development.    *
-  *                                                                          *
-  ***************************************************************************/
+   *                                                                          *
+   * Any other custom config this Sails app should use during development.    *
+   *                                                                          *
+   ***************************************************************************/
   // sendgridSecret: 'SG.fake.3e0Bn0qSQVnwb1E4qNPz9JZP5vLZYqjh7sn8S93oSHU',
   // stripeSecret: 'sk_test_Zzd814nldl91104qor5911gjald',
   // …
 
+  emailProofTokenTTL: 24 * 60 * 60 * 1000, // 24 hours
+  baseUrl: "http://localhost:5173", // react app
+  passwordResetTokenTTL: 24 * 60 * 60 * 1000, // 24 hours
 };
