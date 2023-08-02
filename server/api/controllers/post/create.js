@@ -26,6 +26,7 @@ module.exports = {
   },
 
   fn: async function ({ title, content }, exits) {
+    console.log("We are here?");
     const token = this.req.session.authToken;
 
     const user = await sails.helpers.getUserFromToken(token);
