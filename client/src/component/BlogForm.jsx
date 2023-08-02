@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { createPost } from "../utils/post";
 import { useNavigate } from "react-router-dom";
 import { EditorState, convertToRaw } from "draft-js";
 import { Editor } from "react-draft-wysiwyg";
@@ -20,6 +19,9 @@ export default function Blog() {
   const handleChange = (e) => {
     setBlog({ ...blog, [e.target.name]: e.target.value });
   };
+
+  // todo
+  const createPost = () => {};
 
   const handleSubmit = (e) => {
     e.preventDefault();

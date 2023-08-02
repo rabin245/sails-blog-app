@@ -7,6 +7,8 @@ import Register from "./pages/Register.jsx";
 import BlogForm from "./component/BlogForm.jsx";
 import Blogs from "./pages/Blogs.jsx";
 import Chat from "./pages/Chat.jsx";
+import { store } from "./app/store";
+import { Provider } from "react-redux";
 import SingleBlog from "./pages/SingleBlog.jsx";
 
 const router = createBrowserRouter([
@@ -16,44 +18,36 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/",
-        element: <h1>Home</h1>,
+        element: <Blogs />,
       },
       {
-        path: "/login",
-        element: <Login />,
+        path: "/blogs/new",
+        element: <BlogForm />,
       },
       {
-        path: "/signup",
-        element: <Register />,
+        path: "/blogs/:id",
+        element: <SingleBlog />,
       },
       {
         path: "/chat",
         element: <Chat />,
       },
-
-      {
-        path: "/blogs",
-        children: [
-          {
-            path: "/blogs/",
-            element: <Blogs />,
-          },
-          {
-            path: "/blogs/:id",
-            element: <SingleBlog />,
-          },
-          {
-            path: "/blogs/create",
-            element: <BlogForm />,
-          },
-        ],
-      },
     ],
+  },
+  {
+    path: "/login",
+    element: <Login />,
+  },
+  {
+    path: "/signup",
+    element: <Register />,
   },
 ]);
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   // <React.StrictMode>
-  <RouterProvider router={router} fallbackElement={<h1>Loading ...</h1>} />
+  <Provider store={store}>
+    <RouterProvider router={router} fallbackElement={<h1>Loading ...</h1>} />
+  </Provider>
   // </React.StrictMode>
 );

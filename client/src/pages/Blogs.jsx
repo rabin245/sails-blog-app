@@ -1,44 +1,40 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import BlogCard from "../component/BlogCard";
-import { getPost } from "../utils/post";
 import sailsIOClient from "sails.io.js";
-// import { io } from "socket.io-client";
 import socketIOClient from "socket.io-client";
+import { useGetBlogsQuery } from "../app/services/blog/blogApiService";
+
 export default function Blogs() {
-  const [blogs, setBlogs] = useState([]);
+  const { data, error, isLoading } = useGetBlogsQuery();
 
-  useEffect(() => {
-    // Fetch initial blog data using getPost()
-    getPost()
-      .then((post) => {
-        console.log(post);
-        setBlogs(post);
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+  // useEffect(() => {
+  // let io;
+  // if (socketIOClient.sails) {
+  //   io = socketIOClient;
+  // } else {
+  //   io = sailsIOClient(socketIOClient);
+  // }
+  //
+  // io.sails.url = "http://localhost:1337";
+  //
+  // io.socket.on("connect", function onConnect() {
+  //   console.log("This socket is now connected to the Sails server!");
+  // });
+  //
+  // io.socket.on("newBlogPost", (blog) => {
+  //   console.log("workloads changed", blog);
+  //   setBlogs((prevValue) => {
+  //     console.log(prevValue);
+  //     return prevValue.concat([blog]);
+  //   });
+  // });
+  // }, []);
 
-    let io;
-    if (socketIOClient.sails) {
-      io = socketIOClient;
-    } else {
-      io = sailsIOClient(socketIOClient);
-    }
+  if (isLoading) return <div>Loading...</div>;
 
-    io.sails.url = "http://localhost:1337";
+  if (error) return <div>{error}</div>;
 
-    io.socket.on("connect", function onConnect() {
-      console.log("This socket is now connected to the Sails server!");
-    });
-
-    io.socket.on("newBlogPost", (blog) => {
-      console.log("workloads changed", blog);
-      setBlogs((prevValue) => {
-        console.log(prevValue);
-        return prevValue.concat([blog]);
-      });
-    });
-  }, []);
+  const blogs = data.posts;
 
   const reversedBlogs = blogs.slice().reverse();
 
