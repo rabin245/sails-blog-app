@@ -1,34 +1,23 @@
-import { useEffect } from "react";
-import { getSinglePost } from "../utils/post";
 import { useParams } from "react-router-dom";
-import { useState } from "react";
 import { parseJSON } from "../utils/parseJson";
+import { useGetBlogByIdQuery } from "../app/services/blog/blogApiService";
 
 export default function SingleBlog() {
-  const [blog, setBlog] = useState({
-    author: {
-      fullName: "",
-    },
-    title: "",
-    content: { __html: "" },
-    createdAt: "",
-  });
   const { id } = useParams();
 
-  const [isLoading, setIsLoading] = useState(true); // Add a loading state
+  const { data, error, isLoading } = useGetBlogByIdQuery(id);
 
-  useEffect(() => {
-    setIsLoading(true); // Set isLoading to true when starting the data fetch
-    getSinglePost(id).then((post) => {
-      console.log(blog);
-      console.log(post.post);
-      const content = parseJSON(post.post.content);
-      console.log("content", content);
-      const blogPost = post.post;
-      setBlog({ ...blogPost, content: content });
-      setIsLoading(false); // Set isLoading to false after data fetch is complete
-    });
-  }, [id]);
+  if (isLoading) return <div>Loading...</div>;
+
+  if (error) return <div>{error}</div>;
+
+  console.log(data);
+
+  const content = parseJSON(data.post.content);
+  const blog = {
+    ...data.post,
+    content,
+  };
 
   return (
     <div className="bg-slate-900 flex min-h-screen max-h-fit">
