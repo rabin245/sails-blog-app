@@ -7,6 +7,8 @@ import Register from "./pages/Register.jsx";
 import BlogForm from "./component/BlogForm.jsx";
 import Blogs from "./pages/Blogs.jsx";
 import Chat from "./pages/Chat.jsx";
+import { store } from "./app/store";
+import { Provider } from "react-redux";
 
 const router = createBrowserRouter([
   {
@@ -15,40 +17,32 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/",
-        element: <h1>Home</h1>,
+        element: <Blogs />,
       },
       {
-        path: "/login",
-        element: <Login />,
-      },
-      {
-        path: "/signup",
-        element: <Register />,
+        path: "/blogs/new",
+        element: <BlogForm />,
       },
       {
         path: "/chat",
         element: <Chat />,
       },
-
-      {
-        path: "/blogs",
-        children: [
-          {
-            path: "/blogs/",
-            element: <Blogs />,
-          },
-          {
-            path: "/blogs/create",
-            element: <BlogForm />,
-          },
-        ],
-      },
     ],
+  },
+  {
+    path: "/login",
+    element: <Login />,
+  },
+  {
+    path: "/signup",
+    element: <Register />,
   },
 ]);
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   // <React.StrictMode>
-  <RouterProvider router={router} />
+  <Provider store={store}>
+    <RouterProvider router={router} />
+  </Provider>
   // </React.StrictMode>
 );

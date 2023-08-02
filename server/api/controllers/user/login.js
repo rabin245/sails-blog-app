@@ -58,7 +58,7 @@ module.exports = {
 
       return exits.success({
         message: `Welcome ${user.fullName}`,
-        data: user,
+        user,
         token,
       });
     } catch (error) {
