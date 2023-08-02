@@ -1,6 +1,8 @@
 import { configureStore } from "@reduxjs/toolkit";
-import authReducer from "./services/auth/authSlice";
+import authReducer, { loadStateFromStorage } from "./services/auth/authSlice";
 import { authApiService } from "./services/auth/authApiService";
+
+const preloadedState = loadStateFromStorage();
 
 export const store = configureStore({
   reducer: {
@@ -9,4 +11,5 @@ export const store = configureStore({
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(authApiService.middleware),
+  preloadedState,
 });
