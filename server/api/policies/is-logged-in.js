@@ -1,5 +1,6 @@
 module.exports = async function (req, res, proceed) {
   try {
+    console.log(req.session, req.session.authToken);
     if (req.session.authToken) {
       return proceed();
     } else {
