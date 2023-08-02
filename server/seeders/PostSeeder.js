@@ -8,23 +8,13 @@ module.exports = async function seedPosts() {
     const posts = [
       {
         title: "First Post",
-        content: "This is the content of the first post.",
+        content: `{"blocks":[{"key":"6ubg","text":"Hello,I am unnder the water ","type":"unstyled","depth":0,"inlineStyleRanges":[{"offset":0,"length":6,"style":"color-rgb(255,255,255)"},{"offset":0,"length":6,"style":"bgcolor-rgb(0,0,0)"},{"offset":0,"length":6,"style":"fontsize-medium"},{"offset":0,"length":6,"style":"fontfamily-Inter, system-ui, Avenir, Helvetica, Arial, sans-serif"},{"offset":0,"length":5,"style":"BOLD"}],"entityRanges":[],"data":{}}],"entityMap":{}}`,
         author: late.id,
       },
       {
         title: "Second Post",
-        content: "Another post by Late.",
+        content: `{"blocks":[{"key":"6tdag","text":"THis is a test blog","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}}],"entityMap":{}}`,
         author: late.id,
-      },
-      {
-        title: "Third Post",
-        content: "Late2's first post.",
-        author: late2.id,
-      },
-      {
-        title: "Fourth Post",
-        content: "Late2's first post.",
-        author: late2.id,
       },
     ];
 

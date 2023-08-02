@@ -20,6 +20,7 @@ module.exports = {
     content: {
       type: "string",
       minLength: 10,
+      columnType: "text",
     },
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗

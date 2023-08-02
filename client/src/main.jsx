@@ -9,6 +9,7 @@ import Blogs from "./pages/Blogs.jsx";
 import Chat from "./pages/Chat.jsx";
 import { store } from "./app/store";
 import { Provider } from "react-redux";
+import SingleBlog from "./pages/SingleBlog.jsx";
 
 const router = createBrowserRouter([
   {
@@ -22,6 +23,10 @@ const router = createBrowserRouter([
       {
         path: "/blogs/new",
         element: <BlogForm />,
+      },
+      {
+        path: "/blogs/:id",
+        element: <SingleBlog />,
       },
       {
         path: "/chat",
@@ -42,7 +47,7 @@ const router = createBrowserRouter([
 ReactDOM.createRoot(document.getElementById("root")).render(
   // <React.StrictMode>
   <Provider store={store}>
-    <RouterProvider router={router} />
+    <RouterProvider router={router} fallbackElement={<h1>Loading ...</h1>} />
   </Provider>
   // </React.StrictMode>
 );

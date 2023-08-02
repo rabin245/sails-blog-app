@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { EditorState } from "draft-js";
+import { EditorState, convertToRaw } from "draft-js";
 import { Editor } from "react-draft-wysiwyg";
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
-import { convertToHTML } from "draft-convert";
 
 export default function Blog() {
   const navigate = useNavigate();
@@ -16,9 +15,6 @@ export default function Blog() {
   const [editorState, setEditorState] = useState(() =>
     EditorState.createEmpty()
   );
-  // useEffect(() => {
-  //   setConvertedContent(convertToHTML(editorState.getCurrentContent()));
-  // }, [editorState]);
 
   const handleChange = (e) => {
     setBlog({ ...blog, [e.target.name]: e.target.value });
@@ -30,9 +26,14 @@ export default function Blog() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const convertedHTML = convertToHTML(editorState.getCurrentContent());
+    const contentState = editorState.getCurrentContent();
+    const contentStateJSON = JSON.stringify(convertToRaw(contentState));
+    console.log(contentStateJSON);
 
-    createPost({ title: blog.title, content: convertedHTML }).then((res) => {
+    createPost({
+      title: blog.title,
+      content: contentStateJSON,
+    }).then((res) => {
       console.log(res);
       navigate("/blogs");
     });
@@ -52,6 +53,7 @@ export default function Blog() {
             onChange={handleChange}
             className="border-2 border-gray-300 p-2 rounded-lg focus:outline-none focus:border-blue-400"
           />
+
           <Editor
             editorState={editorState}
             onEditorStateChange={setEditorState}
