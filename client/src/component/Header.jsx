@@ -1,16 +1,9 @@
 import { Link, useNavigate } from "react-router-dom";
-import { logout } from "../utils/auth";
 
 export default function Header() {
   const navigate = useNavigate();
   const handleLogout = () => {
     console.log("logout");
-    const res = logout();
-    console.log(res);
-    if (res) {
-      console.log(res);
-      navigate("/login");
-    }
   };
 
   return (
