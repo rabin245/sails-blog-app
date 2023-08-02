@@ -7,6 +7,7 @@ import Register from "./pages/Register.jsx";
 import BlogForm from "./component/BlogForm.jsx";
 import Blogs from "./pages/Blogs.jsx";
 import Chat from "./pages/Chat.jsx";
+import SingleBlog from "./pages/SingleBlog.jsx";
 
 const router = createBrowserRouter([
   {
@@ -36,6 +37,10 @@ const router = createBrowserRouter([
           {
             path: "/blogs/",
             element: <Blogs />,
+          },
+          {
+            path: "/blogs/:id",
+            element: <SingleBlog />,
           },
           {
             path: "/blogs/create",
