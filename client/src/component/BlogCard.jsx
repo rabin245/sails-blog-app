@@ -1,12 +1,18 @@
 import PropTypes from "prop-types";
+import { convertFromRaw } from "draft-js";
+import { convertToHTML } from "draft-convert";
 import DOMPurify from "dompurify";
 export default function BlogCard({ blog }) {
   function createMarkup(html) {
-    const sanitizedHTML = DOMPurify.sanitize(html);
+    const content = convertFromRaw(JSON.parse(html));
+    const contentHTML = convertToHTML(content);
+    const sanitizedHTML = DOMPurify.sanitize(contentHTML);
+
     return {
       __html: sanitizedHTML,
     };
   }
+
   //should show the blog with title descroptiopn and author name
   return (
     <div className="flex justify-center items-center  mb-3 w-[80vw]">
@@ -18,6 +24,7 @@ export default function BlogCard({ blog }) {
               By {blog.author.fullName},{" "}
               {new Date(blog.createdAt).toLocaleString()}
             </span>
+
             <div
               className="pe-2 line-clamp-2 max-w-[70vw]  break-words"
               dangerouslySetInnerHTML={createMarkup(blog.content)}
@@ -27,6 +34,7 @@ export default function BlogCard({ blog }) {
             <button className="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-400">
               Edit
             </button>
+
             <button className="bg-red-500 text-white p-2 rounded-lg hover:bg-red-400">
               Delete
             </button>

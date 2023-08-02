@@ -1,7 +1,5 @@
 import axios from "axios";
 
-const TOKEN = localStorage.getItem("user");
-
 export const getPost = () => {
   return axios
     .get("/api/posts", {
