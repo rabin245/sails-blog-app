@@ -26,7 +26,9 @@ module.exports.sockets = {
    *                                                                          *
    ***************************************************************************/
 
+  adapter: "@sailshq/socket.io-redis",
   transports: ["websocket"],
+  url: "redis://localhost:6379/0",
   /***************************************************************************
    *                                                                          *
    * `beforeConnect`                                                          *

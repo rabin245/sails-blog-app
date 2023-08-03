@@ -45,4 +45,7 @@ module.exports.routes = {
   "POST /posts": "post/create",
   "PUT /posts/:id": "post/update",
   "DELETE /posts/:id": "post/delete",
+
+  "GET /join-blog": "post/join-room",
+  "GET /leave-blog": "post/leave-room",
 };

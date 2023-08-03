@@ -26,7 +26,6 @@ module.exports = {
   },
 
   fn: async function ({ title, content }, exits) {
-    console.log("We are here?");
     const token = this.req.session.authToken;
 
     const user = await sails.helpers.getUserFromToken(token);
@@ -38,7 +37,10 @@ module.exports = {
         author: user.id,
       }).fetch();
 
-      sails.sockets.blast("new-post", {
+      const author = await User.findOne({ id: user.id });
+      post.author = author;
+
+      sails.sockets.broadcast("blog-room", "new-post", {
         post,
       });
 
