@@ -37,6 +37,9 @@ module.exports = {
         author: user.id,
       }).fetch();
 
+      const author = await User.findOne({ id: user.id });
+      post.author = author;
+
       sails.sockets.broadcast("blog-room", "new-post", {
         post,
       });

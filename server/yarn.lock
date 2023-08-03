@@ -104,9 +104,9 @@
     tunnel-agent "^0.6.0"
     uuid "^3.3.2"
 
-"@sailshq/socket.io-redis@^5.2.0":
+"@sailshq/socket.io-redis@^5.2.1":
   version "5.2.1"
-  resolved "https://registry.npmjs.org/@sailshq/socket.io-redis/-/socket.io-redis-5.2.1.tgz"
+  resolved "https://registry.yarnpkg.com/@sailshq/socket.io-redis/-/socket.io-redis-5.2.1.tgz#cad9744713b00f99dddf02a7410beeaa2770f761"
   integrity sha512-ucQfoDPigpC1qRfVYsm2lAz/jWW1NVuSS6gIGdKsF0WiB9CbFJeYIwhdfUtjWxaW1Mf73nkSd/FHo4lLOXM7jg==
   dependencies:
     debug "~2.6.8"
@@ -4500,6 +4500,7 @@ string-template@~0.2.1:
   integrity sha1-QpMuWYo1LQH8IuwzZ9nYTuxsmt0=
 
 "string-width-cjs@npm:string-width@^4.2.0", string-width@^4.1.0:
+  name string-width-cjs
   version "4.2.3"
   resolved "https://registry.npmjs.org/string-width/-/string-width-4.2.3.tgz"
   integrity sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==
@@ -4547,6 +4548,7 @@ string_decoder@~1.1.1:
     safe-buffer "~5.1.0"
 
 "strip-ansi-cjs@npm:strip-ansi@^6.0.1", strip-ansi@^6.0.0, strip-ansi@^6.0.1:
+  name strip-ansi-cjs
   version "6.0.1"
   resolved "https://registry.npmjs.org/strip-ansi/-/strip-ansi-6.0.1.tgz"
   integrity sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A==
