@@ -1,13 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 import BlogCard from "../component/BlogCard";
-import sailsIOClient from "sails.io.js";
-import socketIOClient from "socket.io-client";
 import { useGetBlogsQuery } from "../app/services/blog/blogApiService";
+import socketIOClient from "socket.io-client";
+import sailsIOClient from "sails.io.js";
+import { useDispatch, useSelector } from "react-redux";
+import { selectBlogs } from "../app/services/blog/blogSlice";
+import { addBlog, setBlogs } from "../app/services/blog/blogSlice";
 
 export default function Blogs() {
   const { data, error, isLoading } = useGetBlogsQuery();
+  const dispatch = useDispatch();
 
-  const [blogPosts, setBlogPosts] = useState([]);
+  const blogPosts = useSelector(selectBlogs);
 
   useEffect(() => {
     let io;
@@ -18,7 +22,6 @@ export default function Blogs() {
     }
 
     io.sails.url = "http://localhost:1337";
-
     io.socket.get("/join-blog", function (body, response) {
       console.log("\n\nSails responded with: ", body);
       console.log("with headers: ", response.headers);
@@ -27,11 +30,10 @@ export default function Blogs() {
 
     io.socket.on("new-post", function ({ post }) {
       console.log("new post", post);
-      setBlogPosts((prevPosts) => [...prevPosts, post]);
+      dispatch(addBlog(post));
     });
 
     return () => {
-      console.log("running cleanup function");
       io.socket.get("/leave-blog", function (body, response) {
         console.log("\n\nSails responded with: ", body);
         console.log("with headers: ", response.headers);
@@ -42,7 +44,7 @@ export default function Blogs() {
 
   useEffect(() => {
     if (data) {
-      setBlogPosts(data.posts);
+      dispatch(setBlogs(data.posts));
     }
   }, [data]);
 
