@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { EditorState, convertToRaw } from "draft-js";
 import { Editor } from "react-draft-wysiwyg";
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
+import { useCreateBlogMutation } from "../app/services/blog/blogApiService";
 
 export default function Blog() {
   const navigate = useNavigate();
@@ -12,6 +13,8 @@ export default function Blog() {
     content: "",
   });
 
+  const [errMsg, setErrMsg] = useState("");
+
   const [editorState, setEditorState] = useState(() =>
     EditorState.createEmpty()
   );
@@ -20,23 +23,31 @@ export default function Blog() {
     setBlog({ ...blog, [e.target.name]: e.target.value });
   };
 
-  // todo
-  const createPost = () => {};
+  const [createBlog, { isLoading }] = useCreateBlogMutation();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const contentState = editorState.getCurrentContent();
-    const contentStateJSON = JSON.stringify(convertToRaw(contentState));
-    console.log(contentStateJSON);
+    try {
+      const contentState = editorState.getCurrentContent();
+      const contentStateJSON = JSON.stringify(convertToRaw(contentState));
 
-    createPost({
-      title: blog.title,
-      content: contentStateJSON,
-    }).then((res) => {
-      console.log(res);
-      navigate("/blogs");
-    });
+      const { message, post } = await createBlog({
+        title: blog.title,
+        content: contentStateJSON,
+      }).unwrap();
+
+      console.log(message, post);
+
+      navigate("/");
+    } catch (err) {
+      console.log(err);
+      if (err.status === 400) {
+        setErrMsg("Missing Title or Content");
+      } else {
+        setErrMsg("Create Failed");
+      }
+    }
   };
 
   return (
@@ -78,11 +89,12 @@ export default function Blog() {
             }}
           />
 
+          {errMsg ? <p className="text-red-500">{errMsg}</p> : null}
           <button
             type="submit"
             className="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-400"
           >
-            Submit
+            {isLoading ? "Loading..." : "Create"}
           </button>
         </form>
       </div>

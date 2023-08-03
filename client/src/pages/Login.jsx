@@ -22,7 +22,7 @@ export default function Login() {
     }));
   };
 
-  const [login, { isLoading, isError, error }] = useLoginMutation();
+  const [login, { isLoading }] = useLoginMutation();
   const dispatch = useDispatch();
 
   const handleSubmit = async (e) => {
