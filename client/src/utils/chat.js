@@ -20,55 +20,41 @@ export const connectToSocket = () => {
   return io;
 };
 
-export const joinChat = async (id) => {
-  const io = connectToSocket();
-  io.socket.get(`/chat/join/${id}`, (body, JWR) => {
-    console.log("Sails responded with: ", body);
-    console.log("with headers: ", JWR.headers);
-    console.log("and with status code: ", JWR.statusCode);
+export const getChat = async (io, receiverId, userId) => {
+  // const io = connectToSocket();
+  console.log("getting chat\n\n\n\n");
+  return new Promise((resolve) => {
+    io.socket.get(
+      `/chat/conversations/?senderId=${userId}&receiverId=${receiverId}`,
+      (body, JWR) => {
+        console.log("Sails responded with: ", body);
+        console.log("with headers: ", JWR.headers);
+        console.log("and with status code: ", JWR.statusCode);
+        resolve(body);
+      }
+    );
   });
-
-  //   return axios
-  //     .get(`http://localhost:1337/chat/join/${id}`, {
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //     })
-  //     .then((response) => {
-  //       console.log(response.data);
-  //       return response.data;
-  //     });
 };
 
-export const postChat = async (roomid, msg) => {
-  const io = connectToSocket();
-  console.log("herE");
-  io.socket.post(`/chat/post`, { roomid, msg }, (body, JWR) => {
-    console.log("Sails responded with: ", body);
-    console.log("with headers: ", JWR.headers);
-    console.log("and with status code: ", JWR.statusCode);
+export const postChat = async (io, receiverId, senderId, message) => {
+  // const io = connectToSocket();
+  console.log("posting chat\n\n\n\n");
+  return new Promise((resolve) => {
+    io.socket.post(
+      `/chat/send`,
+      {
+        receiverId,
+        message,
+        senderId,
+      },
+      (body, JWR) => {
+        console.log("Sails responded with: ", body);
+        console.log("with headers: ", JWR.headers);
+        console.log("and with status code: ", JWR.statusCode);
+        resolve(body);
+      }
+    );
   });
-
-  //   return axios
-  //     .post(
-  //       `http://localhost:1337/chat/post`,
-  //       {
-  //         roomid: roomid,
-  //         msg: msg,
-  //       },
-  //       {
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //         },
-  //       }
-  //     )
-  //     .then((response) => {
-  //       console.log(response.data);
-  //       return response.data;
-  //     })
-  //     .catch((err) => {
-  //       console.log(err);
-  //     });
 };
 
 export const leaveChat = async (id) => {

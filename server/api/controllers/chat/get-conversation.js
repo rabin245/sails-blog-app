@@ -10,13 +10,15 @@ module.exports = {
   fn: async function (inputs, exits) {
     try {
       console.log("We here?");
-      const token = this.req.session.authToken;
-      const user = await sails.helpers.getUserFromToken(token);
-      const user1 = user.id;
+      console.log(this.req.session);
+      const queryString = this.req.query;
+      console.log(queryString);
+      // const { senderId, receiverId } = this.req.params;
 
-      console.log(typeof user1);
+      const user1 = parseInt(queryString.senderId);
+      const user2 = parseInt(queryString.receiverId);
 
-      const user2 = this.req.params.id;
+      console.log(user1, user2);
 
       const conversation = await Chat.find({
         where: {
@@ -37,8 +39,14 @@ module.exports = {
         .populate("receiver");
 
       if (conversation) {
-        sails.sockets.join(this.req, `user-${user1}`);
-        sails.sockets.join(this.req, `user-${user2}`);
+        sails.sockets.join(this.req, `user-${user1}`, (err) => {
+          console.log("Joined Room???");
+          if (err) {
+            console.log(err);
+          }
+        });
+
+        // sails.sockets.join(this.req, `user-${user2}`);
 
         return exits.success({
           conversation,

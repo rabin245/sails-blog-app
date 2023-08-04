@@ -10,6 +10,8 @@ import Chat from "./pages/Chat.jsx";
 import { store } from "./app/store";
 import { Provider } from "react-redux";
 import SingleBlog from "./pages/SingleBlog.jsx";
+import Chatbody from "./component/ChatBody.jsx";
+import ChatbodyWithMessage from "./component/ChatbodyWithMessage.jsx";
 
 const router = createBrowserRouter([
   {
@@ -31,6 +33,16 @@ const router = createBrowserRouter([
       {
         path: "/chat",
         element: <Chat />,
+        children: [
+          {
+            path: "/chat",
+            element: <ChatbodyWithMessage />,
+          },
+          {
+            path: "/chat/:id",
+            element: <Chatbody />,
+          },
+        ],
       },
     ],
   },

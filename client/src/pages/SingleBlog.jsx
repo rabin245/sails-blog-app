@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { parseJSON } from "../utils/parseJson";
 import { useGetBlogByIdQuery } from "../app/services/blog/blogApiService";
 
@@ -19,6 +19,8 @@ export default function SingleBlog() {
     content,
   };
 
+  console.log(blog);
+
   return (
     <div className="bg-slate-900 flex min-h-screen max-h-fit">
       <div className=" w-screen flex flex-col justify-center items-center pt-5 h-full">
@@ -37,9 +39,7 @@ export default function SingleBlog() {
                   <div className="flex text-sm  items-center gap-2">
                     <span>By {blog.author.fullName}</span>
                     <span>·</span>
-                    <button className=" text-blue-500 p-2 rounded-lg ">
-                      Message
-                    </button>
+                    <Link to={`/chat/${blog.author.id}`}>Message</Link>
                   </div>
                   <span className="text-sm text-gray-500 italic">
                     {new Date(blog.createdAt).toLocaleString()}

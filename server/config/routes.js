@@ -46,7 +46,7 @@ module.exports.routes = {
   "PUT /posts/:id": "post/update",
   "DELETE /posts/:id": "post/delete",
 
-  "GET /chat/conversations/:id": "chat/get-conversation",
+  "GET /chat/conversations": "chat/get-conversation",
   "POST /chat/send": "chat/send",
   "GET /chat/person-contacts": "chat/get-person-contacts",
 };

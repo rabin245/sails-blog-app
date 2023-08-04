@@ -4,7 +4,11 @@ module.exports = {
   description: "Send chat.",
 
   inputs: {
-    receiver: {
+    senderId: {
+      type: "number",
+      required: true,
+    },
+    receiverId: {
       type: "number",
       required: true,
     },
@@ -25,11 +29,8 @@ module.exports = {
 
   fn: async function (inputs, exits) {
     try {
-      const token = this.req.session.authToken;
-      const user = await sails.helpers.getUserFromToken(token);
-
-      const sender = user.id;
-      const receiver = inputs.receiver;
+      const sender = inputs.senderId;
+      const receiver = inputs.receiverId;
       const message = inputs.message;
 
       const chat = await Chat.create({
@@ -38,27 +39,21 @@ module.exports = {
         message,
       }).fetch();
 
+      const populatedChat = await Chat.findOne({
+        id: chat.id,
+      })
+        .populate("sender")
+        .populate("receiver");
+
+      console.log(chat, populatedChat);
+
       if (chat) {
-        sails.sockets.broadcast(
-          `user-${receiver}`,
-          "chat",
-          {
-            sender,
-            receiver,
-            message,
-          },
-          this.req
-        );
-        sails.sockets.broadcast(
-          `user-${sender}`,
-          "chat",
-          {
-            sender,
-            receiver,
-            message,
-          },
-          this.req
-        );
+        sails.sockets.broadcast(`user-${receiver}`, "chat", {
+          ...populatedChat,
+        });
+        sails.sockets.broadcast(`user-${sender}`, "chat", {
+          ...populatedChat,
+        });
       }
 
       return exits.success({
