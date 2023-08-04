@@ -5,15 +5,41 @@ import { useParams } from "react-router";
 import { connectToSocket, getChat, postChat } from "../utils/chat";
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import { selectUser } from "../app/services/auth/authSlice";
+import { joinRoom } from "../utils/chat";
 
-export default function Chatbody() {
+export default function Chatbody({ io }) {
   const [messsage, setMesssage] = useState("");
 
   const id = useParams().id;
   const user = useSelector(selectUser);
 
   const [chats, setChats] = useState([]);
-  const io = connectToSocket();
+
+  useEffect(() => {
+    io.socket.on("connect", () => {
+      console.log("connected");
+    });
+
+    io.socket.on(`chat`, (data) => {
+      console.log("chat event", data);
+      console.log(chats);
+
+      // if (data.reciever.id !== user.id)
+      console.log("senderID", data.sender.id, "receiverID", data.receiver.id);
+      console.log("userID", user.id, "receiverID", id);
+
+      if (
+        (data.sender.id === user.id && data.receiver.id == id) ||
+        (data.sender.id == id && data.receiver.id === user.id)
+      ) {
+        setChats((prev) => [...prev, data]);
+      }
+
+      // if (data.sender.id === user.id || data.receiver.id === user.id) {
+      //   setChats((prev) => [...prev, data]);
+      // }
+    });
+  }, []);
 
   useEffect(() => {
     getChat(io, id, user.id).then((data) => {
@@ -22,16 +48,7 @@ export default function Chatbody() {
     });
 
     // const io = connectToSocket();
-    io.socket.on("connect", () => {
-      console.log("connected");
-    });
-
-    io.socket.on(`chat`, (data) => {
-      console.log("chat event", data);
-      console.log(chats);
-      setChats((prev) => [...prev, data]);
-    });
-  }, []);
+  }, [id]);
 
   // const [sendChat] = useSendChatMutation();
 
