@@ -38,22 +38,9 @@ module.exports = {
         .populate("sender")
         .populate("receiver");
 
-      if (conversation) {
-        sails.sockets.join(this.req, `user-${user1}`, (err) => {
-          console.log("Joined Room???");
-          if (err) {
-            console.log(err);
-          }
-        });
-
-        // sails.sockets.join(this.req, `user-${user2}`);
-
-        return exits.success({
-          conversation,
-        });
-      } else {
-        return [];
-      }
+      return exits.success({
+        conversation,
+      });
     } catch (err) {
       return exits.error({
         message: "Something went wrong",
