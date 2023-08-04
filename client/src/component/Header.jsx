@@ -26,7 +26,7 @@ export default function Header() {
 
   return (
     <nav className="bg-slate-800 h-12 flex justify-between p-2 px-[15%]">
-      <h1 className="text-2xl  font-bold">Welcome to Blog</h1>
+      <h1 className="text-2xl  font-bold">BlogTalk</h1>
       {loggedInUser ? (
         <div className="flex gap-2 text-white font-bold">
           <Link
