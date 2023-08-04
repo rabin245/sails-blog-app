@@ -1,9 +1,13 @@
 import { useParams } from "react-router-dom";
 import { parseJSON } from "../utils/parseJson";
 import { useGetBlogByIdQuery } from "../app/services/blog/blogApiService";
+import { useSelector } from "react-redux";
+import { selectUser } from "../app/services/auth/authSlice";
 
 export default function SingleBlog() {
   const { id } = useParams();
+
+  const user = useSelector(selectUser);
 
   const { data, error, isLoading } = useGetBlogByIdQuery(id);
 
@@ -36,10 +40,18 @@ export default function SingleBlog() {
                   <div>
                     <div className="flex text-sm  items-center gap-2">
                       <span>By {blog.author.fullName}</span>
-                      <span>·</span>
-                      <button className=" text-blue-500 p-2 rounded-lg ">
-                        Message
-                      </button>
+                      {user && (
+                        user.id != blog.author.id
+                          ? (
+                            <>
+                              <span>·</span>
+                              <button className=" text-blue-500 p-2 rounded-lg ">
+                                Message
+                              </button>
+                            </>
+                          )
+                          : null
+                      )}
                     </div>
                     <span className="text-sm text-gray-500 italic">
                       {new Date(blog.createdAt).toLocaleString()}
