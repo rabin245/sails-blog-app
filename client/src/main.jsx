@@ -12,6 +12,9 @@ import { Provider } from "react-redux";
 import SingleBlog from "./pages/SingleBlog.jsx";
 import Chatbody from "./component/ChatBody.jsx";
 import ChatbodyWithMessage from "./component/ChatbodyWithMessage.jsx";
+import { connectToSocket } from "./utils/socketConnection.js";
+
+const io = connectToSocket();
 
 const router = createBrowserRouter([
   {
@@ -32,7 +35,7 @@ const router = createBrowserRouter([
       },
       {
         path: "/chat",
-        element: <Chat />,
+        element: <Chat io={io} />,
         children: [
           {
             path: "/chat",
@@ -40,7 +43,7 @@ const router = createBrowserRouter([
           },
           {
             path: "/chat/:id",
-            element: <Chatbody />,
+            element: <Chatbody io={io} />,
           },
         ],
       },
