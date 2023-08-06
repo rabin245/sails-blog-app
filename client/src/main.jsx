@@ -13,6 +13,7 @@ import SingleBlog from "./pages/SingleBlog.jsx";
 import Chatbody from "./component/ChatBody.jsx";
 import ChatbodyWithMessage from "./component/ChatbodyWithMessage.jsx";
 import { connectToSocket } from "./utils/socketConnection.js";
+import RequireAuth from "./component/RequireAuth.jsx";
 
 const io = connectToSocket();
 
@@ -26,24 +27,30 @@ const router = createBrowserRouter([
         element: <Blogs />,
       },
       {
-        path: "/blogs/new",
-        element: <BlogForm />,
-      },
-      {
         path: "/blogs/:id",
         element: <SingleBlog />,
       },
       {
-        path: "/chat",
-        element: <Chat io={io} />,
+        path: "/",
+        element: <RequireAuth />,
         children: [
           {
-            path: "/chat",
-            element: <ChatbodyWithMessage />,
+            path: "/blogs/new",
+            element: <BlogForm />,
           },
           {
-            path: "/chat/:id",
-            element: <Chatbody io={io} />,
+            path: "/chat",
+            element: <Chat io={io} />,
+            children: [
+              {
+                path: "/chat",
+                element: <ChatbodyWithMessage />,
+              },
+              {
+                path: "/chat/:id",
+                element: <Chatbody io={io} />,
+              },
+            ],
           },
         ],
       },
