@@ -18,16 +18,8 @@ export default function BlogCard({ blog }) {
               <div
                 className="pe-2 line-clamp-2 max-w-[70vw]  break-words"
                 dangerouslySetInnerHTML={parseJSON(blog.content)}
-              ></div>
-            </div>
-            <div className="flex flex-col gap-2 justify-center">
-              <button className="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-400">
-                Edit
-              </button>
-
-              <button className="bg-red-500 text-white p-2 rounded-lg hover:bg-red-400">
-                Delete
-              </button>
+              >
+              </div>
             </div>
           </div>
         </div>
@@ -35,15 +27,3 @@ export default function BlogCard({ blog }) {
     </Link>
   );
 }
-
-BlogCard.propTypes = {
-  blog: PropTypes.shape({
-    id: PropTypes.number.isRequired,
-    title: PropTypes.string.isRequired,
-    content: PropTypes.string.isRequired,
-    author: PropTypes.shape({
-      fullName: PropTypes.string.isRequired,
-    }).isRequired,
-    createdAt: PropTypes.number.isRequired,
-  }).isRequired,
-};
