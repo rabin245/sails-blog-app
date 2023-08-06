@@ -6,6 +6,7 @@ import sailsIOClient from "sails.io.js";
 import { useDispatch, useSelector } from "react-redux";
 import { selectBlogs } from "../app/services/blog/blogSlice";
 import { addBlog, setBlogs } from "../app/services/blog/blogSlice";
+import ChatIcon from "../component/ChatIcon";
 
 export default function Blogs() {
   const { data, error, isLoading } = useGetBlogsQuery();
@@ -55,13 +56,16 @@ export default function Blogs() {
   const reversedBlogs = blogPosts.slice().reverse();
 
   return (
-    <div className="bg-slate-900 flex min-h-screen max-h-fit ">
-      <div className="w-screen flex flex-col justify-center items-center pt-5 h-full">
-        <h1 className="text-4xl font-bold mb-4">Blogs</h1>
-        {reversedBlogs.map((blog, index) => (
-          <BlogCard key={index} blog={blog} />
-        ))}
+    <>
+      <div className="bg-slate-900 flex min-h-screen max-h-fit">
+        <div className="w-screen flex flex-col justify-center items-center pt-5 h-full">
+          <h1 className="text-4xl font-bold mb-4">Blogs</h1>
+          {reversedBlogs.map((blog, index) => (
+            <BlogCard key={index} blog={blog} />
+          ))}
+        </div>
+        <ChatIcon />
       </div>
-    </div>
+    </>
   );
 }
