@@ -1,5 +1,4 @@
 import { Outlet } from "react-router";
-// import Chatbody from "../component/ChatBody";
 import ChatSidebar from "../component/ChatSidebar";
 import { useEffect } from "react";
 import { joinRoom } from "../utils/chat";

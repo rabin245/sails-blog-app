@@ -12,7 +12,7 @@ export default function Header() {
 
   const loggedInUser = useSelector(selectUser);
 
-  const [logout, { isLoading }] = useLogoutMutation();
+  const [logout] = useLogoutMutation();
 
   const handleLogout = () => {
     try {
@@ -25,33 +25,35 @@ export default function Header() {
   };
 
   return (
-    <nav className="bg-slate-800 h-12 flex justify-between p-2 px-[15%]">
-      <h1 className="text-2xl  font-bold">BlogTalk</h1>
-      {loggedInUser ? (
-        <div className="flex gap-2 text-white font-bold">
-          <Link
-            to="/blogs/new"
+    <div className="sticky top-0 left-0 z-10 bg-slate-800 flex justify-center">
+      <nav className="flex justify-between items-center py-3 w-[80%]">
+        <h1 className="text-2xl font-bold">BlogTalk</h1>
+        {loggedInUser ? (
+          <div className="flex gap-2 text-white font-bold">
+            <Link
+              to="/blogs/new"
+              className="bg-slate-700 hover:bg-slate-900  py-2 px-4 rounded-xl flex items-center"
+            >
+              Add New
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="bg-slate-700 hover:bg-slate-900   py-2 px-4 rounded-xl flex items-center"
+            >
+              Log out
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => {
+              navigate("/login");
+            }}
             className="bg-slate-700 hover:bg-slate-900  py-2 px-4 rounded-xl flex items-center"
           >
-            Add New
-          </Link>
-          <button
-            onClick={handleLogout}
-            className="bg-slate-700 hover:bg-slate-900   py-2 px-4 rounded-xl flex items-center"
-          >
-            Log out
+            Login
           </button>
-        </div>
-      ) : (
-        <button
-          onClick={() => {
-            navigate("/login");
-          }}
-          className="bg-slate-700 hover:bg-slate-900  py-2 px-4 rounded-xl flex items-center"
-        >
-          Login
-        </button>
-      )}
-    </nav>
+        )}
+      </nav>
+    </div>
   );
 }

@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
-import { IoMdMore } from "react-icons/io";
-
 import { useParams } from "react-router";
-import { connectToSocket, getChat, postChat } from "../utils/chat";
+import { getChat, postChat } from "../utils/chat";
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import { selectUser } from "../app/services/auth/authSlice";
 import { joinRoom } from "../utils/chat";
@@ -34,10 +32,6 @@ export default function Chatbody({ io }) {
       ) {
         setChats((prev) => [...prev, data]);
       }
-
-      // if (data.sender.id === user.id || data.receiver.id === user.id) {
-      //   setChats((prev) => [...prev, data]);
-      // }
     });
   }, []);
 
@@ -46,13 +40,7 @@ export default function Chatbody({ io }) {
       setChats(data.conversation);
       console.log(data);
     });
-
-    // const io = connectToSocket();
   }, [id]);
-
-  // const [sendChat] = useSendChatMutation();
-
-  // const chats = data.conversation;
 
   const handleChange = (e) => {
     setMesssage(e.target.value);
