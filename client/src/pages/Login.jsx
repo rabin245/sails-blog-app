@@ -55,9 +55,9 @@ export default function Login() {
   };
 
   return (
-    <div className="flex justify-center items-center h-screen">
+    <div className="flex justify-center items-center h-screen bg-slate-900">
       <div className="bg-slate-800 p-16 rounded-xl shadow-2xl">
-        <h1 className="text-4xl font-bold mb-4">Login</h1>
+        <h1 className="text-4xl font-bold mb-4 text-center">Login</h1>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <input
@@ -94,7 +94,7 @@ export default function Login() {
 
         <p className="mt-2">
           Don&apos;t have an account?{" "}
-          <Link to="/signup" className="text-blue-600">
+          <Link to="/signup" className="text-blue-600 hover:underline" replace>
             Signup now
           </Link>
         </p>

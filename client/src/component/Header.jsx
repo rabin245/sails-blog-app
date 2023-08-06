@@ -27,7 +27,9 @@ export default function Header() {
   return (
     <div className="sticky top-0 left-0 z-10 bg-slate-800 flex justify-center">
       <nav className="flex justify-between items-center py-3 w-[80%]">
-        <h1 className="text-2xl font-bold">BlogTalk</h1>
+        <Link to="/" className="text-2xl font-bold">
+          BlogTalk
+        </Link>
         {loggedInUser ? (
           <div className="flex gap-2 text-white font-bold">
             <Link
