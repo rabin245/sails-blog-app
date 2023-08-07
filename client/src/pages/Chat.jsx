@@ -15,7 +15,7 @@ export default function Chat({ io }) {
   }, []);
 
   return (
-    <div className="flex">
+    <div className="flex h-[calc(100vh-3.5rem)]">
       <ChatSidebar />
       <Outlet />
     </div>

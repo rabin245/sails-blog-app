@@ -54,26 +54,23 @@ export default function Chatbody({ io }) {
   };
 
   return (
-    <div className="min-h-[calc(100vh-3.5rem)] w-4/5 bg-slate-800 ">
+    <div className="w-4/5">
       <div>
-        <nav className="flex items-center justify-between pe-6 border-y border-s-1 border-black">
-          <div className="flex gap-2 items-center py-2 px-8">
+        <div className="flex items-center justify-between h-12 border-b border-gray-950 bg-slate-950">
+          <div className="flex gap-2 items-center px-3">
             <img
               src="https://picsum.photos/200"
               alt="server icon"
-              className="w-9 h-9 rounded-full"
+              className="w-8 h-8 rounded-full"
             />
 
-            <h1 className="text-lg text-white  font-bold">
+            <h1 className="text-lg text-white font-bold">
               {/* {chats[0].receiver.fullName} */}
               User Name
             </h1>
           </div>
-          <div className="relative">
-            <IoMdMore className="text-white text-2xl" />
-          </div>
-        </nav>
-        <div className="flex flex-col justify-between border-s border-black bg-slate-800 px-8 min-h-[calc(100vh-6.5rem)]  shadow-2xl  ">
+        </div>
+        <div className="flex flex-col justify-between bg-slate-800 px-3 min-h-[calc(100vh-6.5rem)]  shadow-2xl">
           <div className="max-h-[calc(100vh-10rem)] overflow-y-auto scrollbar-hidden ">
             {chats.map((chat, index) => (
               <div key={index} className="mb-1">
