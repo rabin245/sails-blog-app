@@ -1,5 +1,4 @@
 import { Outlet } from "react-router";
-// import Chatbody from "../component/ChatBody";
 import ChatSidebar from "../component/ChatSidebar";
 import { useEffect } from "react";
 import { joinRoom } from "../utils/chat";
@@ -16,7 +15,7 @@ export default function Chat({ io }) {
   }, []);
 
   return (
-    <div className="flex">
+    <div className="flex h-[calc(100vh-3.5rem)]">
       <ChatSidebar />
       <Outlet />
     </div>

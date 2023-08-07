@@ -1,15 +1,24 @@
 import { Link, useParams } from "react-router-dom";
 import { parseJSON } from "../utils/parseJson";
 import { useGetBlogByIdQuery } from "../app/services/blog/blogApiService";
+import { useSelector } from "react-redux";
+import { selectUser } from "../app/services/auth/authSlice";
 
 export default function SingleBlog() {
   const { id } = useParams();
+
+  const user = useSelector(selectUser);
 
   const { data, error, isLoading } = useGetBlogByIdQuery(id);
 
   if (isLoading) return <div>Loading...</div>;
 
-  if (error) return <div>{error}</div>;
+  if (error)
+    return (
+      <div>
+        {error.originalStatus} {error.data}
+      </div>
+    );
 
   console.log(data);
 
@@ -38,8 +47,13 @@ export default function SingleBlog() {
                 <div>
                   <div className="flex text-sm  items-center gap-2">
                     <span>By {blog.author.fullName}</span>
-                    <span>·</span>
-                    <Link to={`/chat/${blog.author.id}`}>Message</Link>
+                    {user &&
+                      (user.id != blog.author.id ? (
+                        <>
+                          <span>·</span>
+                          <Link to={`/chat/${blog.author.id}`}>Message</Link>
+                        </>
+                      ) : null)}
                   </div>
                   <span className="text-sm text-gray-500 italic">
                     {new Date(blog.createdAt).toLocaleString()}
@@ -51,8 +65,6 @@ export default function SingleBlog() {
                 className="pe-2 text-xl max-w-[80vw]  break-words"
                 dangerouslySetInnerHTML={blog.content}
               ></div>
-              {/* <p className="text-xl">{blog.content}</p> */}
-              {/* {parseJSON(blog.content)} */}
             </div>
           )}
         </div>

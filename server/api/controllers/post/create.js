@@ -26,7 +26,6 @@ module.exports = {
   },
 
   fn: async function ({ title, content }, exits) {
-    console.log("We are here?");
     const token = this.req.session.authToken;
 
     const user = await sails.helpers.getUserFromToken(token);
@@ -40,7 +39,12 @@ module.exports = {
 
       await sails.helpers.removeCache("cached_posts");
 
-      sails.sockets.blast("new-post", {
+      await sails.helpers.removeCache("cached_posts");
+
+      const author = await User.findOne({ id: user.id });
+      post.author = author;
+
+      sails.sockets.broadcast("blog-room", "new-post", {
         post,
       });
 
