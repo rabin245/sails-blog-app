@@ -1,34 +1,41 @@
-import { useGetContactedPersonQuery } from "../app/services/chat/chatApiService";
+import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
+import { useEffect } from "react";
+import { getContactedPerson } from "../app/services/chat/chatSlice";
 
 export default function ChatSidebar() {
-  const { data, isLoading, error } = useGetContactedPersonQuery();
+  const dispatch = useDispatch();
+  const { contactedPerson, isLoading, isError } = useSelector((state) =>
+    state.chat
+  );
+
+  useEffect(() => {
+    dispatch(getContactedPerson());
+  }, [dispatch]);
 
   if (isLoading) return <div>Loading...</div>;
 
-  if (error) {
+  if (isError) {
     return (
       <div>
-        {error.originalStatus} {error.data}
+        <h1>Error</h1>
       </div>
     );
   }
 
-  const person = data.contacts || [];
+  const contacts = contactedPerson.contacts || [];
 
   return (
     <div className="bg-slate-900 w-1/5 z-10 shadow-2xl h-full">
       <div className="flex justify-between items-center border-b border-slate-950 h-12 px-3">
         <h1 className="text-xl text-white font-bold">Chats</h1>
       </div>
-      {person.length != 0
+      {contacts.length != 0
         ? (
           <>
-            <div className="flex flex-col gap-1 overflow-y-scroll h-[calc(100%-3rem)] scrollbar-thin scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-500 scrollbar-thumb-rounded-lg">
-              {person.map((person, index) => (
-                <>
-                  <ChatCard key={index} person={person} />
-                </>
+            <div className="flex flex-col my-1 gap-1 overflow-y-auto h-[calc(100%-3rem)] scrollbar-thin scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-500 scrollbar-thumb-rounded-lg">
+              {contacts.map((person, index) => (
+                <ChatCard key={index} person={person} />
               ))}
             </div>
           </>
