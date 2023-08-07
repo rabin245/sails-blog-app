@@ -1,8 +1,8 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
-  selectUser,
   logout as logoutAction,
+  selectUser,
 } from "../app/services/auth/authSlice";
 import { useLogoutMutation } from "../app/services/auth/authApiService";
 
@@ -36,33 +36,35 @@ export default function Header() {
         <Link to="/" className="text-2xl font-bold">
           BlogTalk
         </Link>
-        {loggedInUser ? (
-          <div className="flex gap-2 text-white font-bold">
-            {!isChatPage && (
-              <Link
-                to="/blogs/new"
-                className="bg-slate-700 hover:bg-slate-900  py-2 px-4 rounded-xl flex items-center"
+        {loggedInUser
+          ? (
+            <div className="flex gap-2 text-white font-bold">
+              {!isChatPage && (
+                <Link
+                  to="/blogs/new"
+                  className="bg-slate-700 hover:bg-slate-900 py-2 px-4 rounded-xl flex items-center"
+                >
+                  Add New
+                </Link>
+              )}
+              <button
+                onClick={handleLogout}
+                className="bg-red-800 hover:bg-red-900 py-2 px-4 rounded-xl flex items-center"
               >
-                Add New
-              </Link>
-            )}
+                Log out
+              </button>
+            </div>
+          )
+          : (
             <button
-              onClick={handleLogout}
-              className="bg-slate-700 hover:bg-slate-900   py-2 px-4 rounded-xl flex items-center"
+              onClick={() => {
+                navigate("/login");
+              }}
+              className="bg-slate-700 hover:bg-slate-900 py-2 px-4 rounded-xl flex items-center font-bold"
             >
-              Log out
+              Login
             </button>
-          </div>
-        ) : (
-          <button
-            onClick={() => {
-              navigate("/login");
-            }}
-            className="bg-slate-700 hover:bg-slate-900  py-2 px-4 rounded-xl flex items-center"
-          >
-            Login
-          </button>
-        )}
+          )}
       </nav>
     </div>
   );
