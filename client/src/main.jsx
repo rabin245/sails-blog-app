@@ -10,6 +10,12 @@ import Chat from "./pages/Chat.jsx";
 import { store } from "./app/store";
 import { Provider } from "react-redux";
 import SingleBlog from "./pages/SingleBlog.jsx";
+import Chatbody from "./component/ChatBody.jsx";
+import ChatbodyWithMessage from "./component/ChatbodyWithMessage.jsx";
+import { connectToSocket } from "./utils/socketConnection.js";
+import RequireAuth from "./component/RequireAuth.jsx";
+
+const io = connectToSocket();
 
 const router = createBrowserRouter([
   {
@@ -18,19 +24,35 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/",
-        element: <Blogs />,
-      },
-      {
-        path: "/blogs/new",
-        element: <BlogForm />,
+        element: <Blogs io={io} />,
       },
       {
         path: "/blogs/:id",
         element: <SingleBlog />,
       },
       {
-        path: "/chat",
-        element: <Chat />,
+        path: "/",
+        element: <RequireAuth />,
+        children: [
+          {
+            path: "/blogs/new",
+            element: <BlogForm />,
+          },
+          {
+            path: "/chat",
+            element: <Chat io={io} />,
+            children: [
+              {
+                path: "/chat",
+                element: <ChatbodyWithMessage />,
+              },
+              {
+                path: "/chat/:id",
+                element: <Chatbody io={io} />,
+              },
+            ],
+          },
+        ],
       },
     ],
   },

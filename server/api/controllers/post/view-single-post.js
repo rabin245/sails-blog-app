@@ -28,6 +28,14 @@ module.exports = {
 
   fn: async function ({ id }, exits) {
     try {
+      const cachedPosts = await sails.helpers.getCachePost(`cached_post_${id}`);
+
+      if (cachedPosts) {
+        console.log("Cache Hit");
+        console.log("Returning cached posts...");
+        return exits.success({ post: cachedPosts });
+      }
+
       const post = await Post.findOne({ id }).populate("author");
 
       if (!post) {
@@ -35,6 +43,8 @@ module.exports = {
           message: "Post not found",
         });
       }
+
+      await sails.helpers.setCachePost(`cached_post_${id}`, post);
 
       return exits.success({
         message: "Post found",
