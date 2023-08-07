@@ -1,28 +1,18 @@
 import { useEffect, useMemo } from "react";
 import BlogCard from "../component/BlogCard";
 import { useGetBlogsQuery } from "../app/services/blog/blogApiService";
-import socketIOClient from "socket.io-client";
-import sailsIOClient from "sails.io.js";
 import { useDispatch, useSelector } from "react-redux";
 import { selectBlogs } from "../app/services/blog/blogSlice";
 import { addBlog, setBlogs } from "../app/services/blog/blogSlice";
 import ChatIcon from "../component/ChatIcon";
 
-export default function Blogs() {
+export default function Blogs({ io }) {
   const { data, error, isLoading } = useGetBlogsQuery();
   const dispatch = useDispatch();
 
   const blogPosts = useSelector(selectBlogs);
 
   useEffect(() => {
-    let io;
-    if (socketIOClient.sails) {
-      io = socketIOClient;
-    } else {
-      io = sailsIOClient(socketIOClient);
-    }
-
-    io.sails.url = "http://localhost:1337";
     io.socket.get("/join-blog", function (body, response) {
       console.log("\n\nSails responded with: ", body);
       console.log("with headers: ", response.headers);

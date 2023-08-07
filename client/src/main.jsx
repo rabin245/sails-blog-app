@@ -24,7 +24,7 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/",
-        element: <Blogs />,
+        element: <Blogs io={io} />,
       },
       {
         path: "/blogs/:id",
@@ -70,6 +70,6 @@ ReactDOM.createRoot(document.getElementById("root")).render(
   // <React.StrictMode>
   <Provider store={store}>
     <RouterProvider router={router} fallbackElement={<h1>Loading ...</h1>} />
-  </Provider>
+  </Provider>,
   // </React.StrictMode>
 );
