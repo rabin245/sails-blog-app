@@ -24,7 +24,7 @@ export default function ChatSidebar() {
       {person.length != 0
         ? (
           <>
-            <div className="flex flex-col gap-1 overflow-y-scroll h-[calc(100%-3rem)] scrollbar-thin scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-500 scrollbar-thumb-rounded-lg">
+            <div className="flex flex-col my-1 gap-1 overflow-y-auto h-[calc(100%-3rem)] scrollbar-thin scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-500 scrollbar-thumb-rounded-lg">
               {person.map((person, index) => (
                 <>
                   <ChatCard key={index} person={person} />

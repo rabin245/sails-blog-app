@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import BlogCard from "../component/BlogCard";
 import { useGetBlogsQuery } from "../app/services/blog/blogApiService";
 import { useDispatch, useSelector } from "react-redux";
