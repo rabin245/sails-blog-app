@@ -62,15 +62,15 @@ export default function Header() {
               </span>
 
               <div
-                className={`absolute  right-0 top-12 bg-slate-700  py-2 shadow-lg rounded-lg ${
+                className={`w-40 absolute  right-0 top-12 bg-slate-700  py-2 shadow-lg rounded-lg ${
                   showModal ? "opacity-100" : "opacity-0"
                 }`}
               >
                 <div className="flex flex-col text-sm font-medium  items-center gap-2">
-                  <p className="cursor-default">{loggedInUser.fullName}</p>
+                  <p className="cursor-default px-4">{loggedInUser.fullName}</p>
 
                   <p
-                    className="hover:bg-slate-500 px-4 "
+                    className="hover:bg-slate-500 px-4 w-full text-center"
                     onClick={handleLogout}
                   >
                     Log out
