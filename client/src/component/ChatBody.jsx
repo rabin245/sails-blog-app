@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { IoMdMore } from "react-icons/io";
 
 import { useParams } from "react-router";
-import { connectToSocket, getChat, postChat } from "../utils/chat";
+import { getChat, postChat } from "../utils/chat";
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import { selectUser } from "../app/services/auth/authSlice";
 import { joinRoom } from "../utils/chat";

@@ -38,6 +38,8 @@ module.exports = {
         author: user.id,
       }).fetch();
 
+      await sails.helpers.removeCache("cached_posts");
+
       sails.sockets.blast("new-post", {
         post,
       });

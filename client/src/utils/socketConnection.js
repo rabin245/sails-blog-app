@@ -2,7 +2,11 @@ import socketIOClient from "socket.io-client";
 import sailsIOClient from "sails.io.js";
 export const connectToSocket = () => {
   let io;
-  io = sailsIOClient(socketIOClient);
+  if (socketIOClient.sails) {
+    io = socketIOClient;
+  } else {
+    io = sailsIOClient(socketIOClient);
+  }
 
   io.sails.url = "http://localhost:1337";
 
