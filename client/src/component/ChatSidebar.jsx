@@ -1,20 +1,23 @@
-import { useState } from "react";
 import { useGetContactedPersonQuery } from "../app/services/chat/chatApiService";
 import { Link } from "react-router-dom";
 
 export default function ChatSidebar() {
-  // const [conversation, setConversation] = useState([]);
-
-  const { data, isLoading } = useGetContactedPersonQuery();
+  const { data, isLoading, error } = useGetContactedPersonQuery();
 
   if (isLoading) return <div>Loading...</div>;
 
-  // if (error) return <div>{error}</div>;
+  if (error) {
+    return (
+      <div>
+        {error.originalStatus} {error.data}
+      </div>
+    );
+  }
 
   const person = data.contacts || [];
 
   return (
-    <div className="bg-slate-900 min-h-[calc(100vh-3rem)]  w-1/5 border-e border-black ">
+    <div className="bg-slate-900 min-h-[calc(100vh-3.5rem)] w-1/5 border-e border-black ">
       <div className="flex justify-between items-center mb-3 border-b border-e border-black p-3">
         <h1 className="text-xl text-gray-500 font-bold">Chats</h1>
       </div>

@@ -3,7 +3,6 @@ import { useParams } from "react-router";
 import { getChat, postChat } from "../utils/chat";
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import { selectUser } from "../app/services/auth/authSlice";
-import { joinRoom } from "../utils/chat";
 
 export default function Chatbody({ io }) {
   const [messsage, setMesssage] = useState("");
@@ -22,7 +21,6 @@ export default function Chatbody({ io }) {
       console.log("chat event", data);
       console.log(chats);
 
-      // if (data.reciever.id !== user.id)
       console.log("senderID", data.sender.id, "receiverID", data.receiver.id);
       console.log("userID", user.id, "receiverID", id);
 
@@ -56,7 +54,7 @@ export default function Chatbody({ io }) {
   };
 
   return (
-    <div className="min-h-[calc(100vh-3rem)] w-4/5  bg-slate-800 ">
+    <div className="min-h-[calc(100vh-3.5rem)] w-4/5 bg-slate-800 ">
       <div>
         <nav className="flex items-center justify-between pe-6 border-y border-s-1 border-black">
           <div className="flex gap-2 items-center py-2 px-8">
@@ -102,7 +100,8 @@ export default function Chatbody({ io }) {
                       </p>
                     </div>
 
-                    <div className="text-right text-xs mt-1 text-gray-500"></div>
+                    <div className="text-right text-xs mt-1 text-gray-500">
+                    </div>
                   </div>
                 )}
                 {chat.sender.id === user.id && (
@@ -113,7 +112,8 @@ export default function Chatbody({ io }) {
                       </p>
                     </div>
 
-                    <div className="text-right text-xs mt-1 text-gray-500"></div>
+                    <div className="text-right text-xs mt-1 text-gray-500">
+                    </div>
                   </div>
                 )}
               </div>

@@ -29,7 +29,7 @@ export default function Header() {
   return (
     <div className="sticky top-0 left-0 z-10 bg-slate-800 flex justify-center shadow-xl">
       <nav
-        className={`flex justify-between items-center py-3 ${
+        className={`flex justify-between items-center h-14 ${
           isChatPage ? "w-full px-3" : "w-[80%]"
         }`}
       >
