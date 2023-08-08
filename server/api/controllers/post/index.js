@@ -1,5 +1,3 @@
-const axios = require("axios");
-
 module.exports = {
   friendlyName: "Posts",
 
@@ -36,10 +34,6 @@ module.exports = {
       // );
 
       let posts = await Post.find().populate("author");
-      // select not supported in current version of sails waterline
-      // , {
-      //   select: ["fullName", "email"],
-      // });
 
       if (!posts) {
         return exits.noPostsFound({
