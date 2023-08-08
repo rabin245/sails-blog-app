@@ -1,5 +1,3 @@
-const axios = require("axios");
-
 module.exports = {
   friendlyName: "Posts",
 
@@ -31,15 +29,7 @@ module.exports = {
       }
       console.log("Cache Miss");
 
-      // const { data } = await axios.get(
-      //   "https://jsonplaceholder.typicode.com/photos"
-      // );
-
       let posts = await Post.find().populate("author");
-      // select not supported in current version of sails waterline
-      // , {
-      //   select: ["fullName", "email"],
-      // });
 
       if (!posts) {
         return exits.noPostsFound({
@@ -48,9 +38,6 @@ module.exports = {
       }
 
       console.log("Setting cache...");
-
-      // await sails.helpers.setCachePost("cached_posts", data);
-
       await sails.helpers.setCachePost("cached_posts", posts);
 
       return exits.success({
