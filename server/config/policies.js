@@ -25,4 +25,8 @@ module.exports.policies = {
   "post/create": "is-logged-in",
   "post/update": ["is-logged-in", "is-post-author"],
   "post/delete": ["is-logged-in", "is-post-author"],
+
+  "post/like": "is-logged-in",
+  "post/unlike": "is-logged-in",
+  "post/comment": "is-logged-in",
 };

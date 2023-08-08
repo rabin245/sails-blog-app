@@ -2,6 +2,8 @@ module.exports = async function (req, res, proceed) {
   try {
     console.log(req.session, req.session.authToken);
     if (req.session.authToken) {
+      const user = await sails.helpers.getUserFromToken(req.session.authToken);
+      req.user = user;
       return proceed();
     } else {
       res.status(401).json({

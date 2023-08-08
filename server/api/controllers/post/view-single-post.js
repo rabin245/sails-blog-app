@@ -36,7 +36,9 @@ module.exports = {
         return exits.success({ post: cachedPosts });
       }
 
-      const post = await Post.findOne({ id }).populate("author");
+      const post = await Post.findOne({ id }).populate("author").populate(
+        "comments",
+      ).populate("likers");
 
       if (!post) {
         return exits.notFound({

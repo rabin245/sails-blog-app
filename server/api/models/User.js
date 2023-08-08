@@ -76,13 +76,23 @@ module.exports = {
       collection: "chat",
       via: "receiver",
     },
+
+    likedPosts: {
+      collection: "post",
+      via: "likers",
+    },
+
+    comments: {
+      collection: "comment",
+      via: "user",
+    },
   },
   customToJSON: function () {
     return _.pick(this, ["id", "fullName", "email"]);
   },
   beforeCreate: async function (values, proceed) {
     const hashedPassword = await sails.helpers.passwords.hashPassword(
-      values.password
+      values.password,
     );
 
     values.password = hashedPassword;
