@@ -4,7 +4,7 @@ module.exports = {
   description: "Like post.",
 
   inputs: {
-    postId: {
+    id: {
       type: "number",
       required: true,
       description: "The ID of the post that was liked.",
@@ -25,7 +25,7 @@ module.exports = {
     },
   },
 
-  fn: async function ({ postId }, exits) {
+  fn: async function ({ id: postId }, exits) {
     try {
       const userId = this.req.user.id;
 
@@ -35,8 +35,11 @@ module.exports = {
         return exits.notFound();
       }
 
-      await Like.create({ liker: userId, likedPost: postId });
-      return exits.success("Post liked.");
+      await sails.helpers.removeCache(`cached_post_${postId}`);
+
+      await Post.addToCollection(postId, "likers", userId);
+
+      return exits.success({ message: "Post liked." });
     } catch (error) {
       return exits.serverError(error.message);
     }

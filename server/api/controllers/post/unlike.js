@@ -3,7 +3,7 @@ module.exports = {
 
   description: "Unlike a post.",
   inputs: {
-    postId: {
+    id: {
       type: "number",
       required: true,
       description: "The ID of the post that was liked.",
@@ -25,7 +25,7 @@ module.exports = {
     },
   },
 
-  fn: async function ({ postId }, exits) {
+  fn: async function ({ id: postId }, exits) {
     try {
       const userId = this.req.user.id;
 
@@ -34,9 +34,11 @@ module.exports = {
         return exits.notFound();
       }
 
-      await Like.destroy({ liker: userId, likedPost: postId });
+      await sails.helpers.removeCache(`cached_post_${postId}`);
 
-      return exits.success("Post unliked successfully.");
+      await Post.removeFromCollection(postId, "likers", userId);
+
+      return exits.success({ message: "Post unliked successfully." });
     } catch (error) {
       return exits.serverError(error.message);
     }

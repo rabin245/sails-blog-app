@@ -28,7 +28,8 @@ module.exports = async function seedPosts() {
     for (const post of posts) {
       const createdPost = await Post.create(post).fetch();
 
-      await Post.addToCollection(createdPost.id, "likers", [late.id, late2.id]);
+      // await Post.addToCollection(createdPost.id, "likers", [late.id, late2.id]);
+      await Post.addToCollection(createdPost.id, "likers", late.id);
 
       await Comment.create({
         post: createdPost.id,

@@ -4,7 +4,7 @@ module.exports = {
   description: "Create a new comment for a post.",
 
   inputs: {
-    postId: {
+    id: {
       type: "number",
       required: true,
       description: "The ID of the post where the comment is created.",
@@ -31,7 +31,7 @@ module.exports = {
     },
   },
 
-  fn: async function ({ postId, content }, exits) {
+  fn: async function ({ id: postId, content }, exits) {
     try {
       const userId = this.req.user.id;
 
@@ -45,6 +45,8 @@ module.exports = {
         user: userId,
         post: postId,
       }).fetch();
+
+      await sails.helpers.removeCache(`cached_post_${postId}`);
 
       return exits.success({
         message: "Comment created successfully.",
