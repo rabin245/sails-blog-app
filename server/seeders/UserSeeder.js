@@ -1,4 +1,3 @@
-// seeders/UserSeeder.js
 module.exports = async function seedUsers() {
   const users = [
     {

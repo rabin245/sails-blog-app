@@ -38,10 +38,9 @@ module.exports = {
               await client.disconnect();
               return err;
             }
-            console.log("We are here?");
             await client.disconnect();
             return result;
-          }
+          },
         );
       } else {
         await client.set(key, JSON.stringify(value), async (err, result) => {
@@ -50,7 +49,6 @@ module.exports = {
 
             return err;
           }
-          console.log("We are here? asdad d");
           return result;
         });
       }

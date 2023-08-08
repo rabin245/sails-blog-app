@@ -39,8 +39,6 @@ module.exports = {
 
       await sails.helpers.removeCache("cached_posts");
 
-      await sails.helpers.removeCache("cached_posts");
-
       const author = await User.findOne({ id: user.id });
       post.author = author;
 

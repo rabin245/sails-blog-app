@@ -28,15 +28,44 @@ module.exports = {
 
   fn: async function ({ id }, exits) {
     try {
-      const cachedPosts = await sails.helpers.getCachePost(`cached_post_${id}`);
+      const cachedPost = await sails.helpers.getCachePost(`cached_post_${id}`);
 
-      if (cachedPosts) {
-        console.log("Cache Hit");
-        console.log("Returning cached posts...");
-        return exits.success({ post: cachedPosts });
+      const token = this.req.session.authToken;
+      let user;
+      if (token) {
+        user = await sails.helpers.getUserFromToken(token);
       }
 
-      const post = await Post.findOne({ id }).populate("author");
+      let isLiked = false;
+
+      if (cachedPost) {
+        console.log("Cache Hit");
+        console.log("Returning cached posts...");
+
+        if (user) {
+          const userId = user.id;
+          if (
+            cachedPost.likers.some((liker) => {
+              console.log(liker.id);
+              return liker.id == userId;
+            })
+          ) {
+            isLiked = true;
+          }
+        }
+        const numberOfLikes = cachedPost.likers.length;
+
+        return exits.success({
+          message: "Post found",
+          post: cachedPost,
+          isLiked,
+          numberOfLikes,
+        });
+      }
+
+      const post = await Post.findOne({ id }).populate("author").populate(
+        "comments",
+      ).populate("likers");
 
       if (!post) {
         return exits.notFound({
@@ -44,11 +73,23 @@ module.exports = {
         });
       }
 
-      await sails.helpers.setCachePost(`cached_post_${id}`, post);
+      const sanitizedPost = await sails.helpers.sanitizePost([post]);
+
+      await sails.helpers.setCachePost(`cached_post_${id}`, ...sanitizedPost);
+
+      if (user) {
+        const userId = user.id;
+        if (post.likers.some((liker) => liker.id === userId)) {
+          isLiked = true;
+        }
+      }
+      const numberOfLikes = post.likers.length;
 
       return exits.success({
         message: "Post found",
         post,
+        isLiked,
+        numberOfLikes,
       });
     } catch (error) {
       sails.log.error(error);

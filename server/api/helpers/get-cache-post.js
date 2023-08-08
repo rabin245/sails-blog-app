@@ -28,7 +28,6 @@ module.exports = {
 
       const cachedPost = await client.get(key);
       // await client.quit();
-      console.log("We are here?");
       if (!cachedPost) {
         return null;
       }
