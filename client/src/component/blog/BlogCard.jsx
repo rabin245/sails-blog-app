@@ -1,6 +1,6 @@
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
-import { parseJSON } from "../utils/parseJson";
+import { parseJSON } from "../../utils/parseJson";
 
 export default function BlogCard({ blog }) {
   return (

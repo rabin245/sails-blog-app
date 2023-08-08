@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
-import { getChat, postChat } from "../utils/chat";
+import { getChat, postChat } from "../../utils/chat";
 import { useSelector } from "react-redux/es/hooks/useSelector";
-import { selectUser } from "../app/services/auth/authSlice";
+import { selectUser } from "../../app/services/auth/authSlice";
 
 export default function Chatbody({ io }) {
   const [messsage, setMesssage] = useState("");
@@ -83,12 +83,8 @@ export default function Chatbody({ io }) {
 
                   <div className="flex flex-col px-2 py-1 gap-1">
                     <div className="flex items-center text-gray-400 gap-3 text-xs">
-                      <p>
-                        {chat.sender.fullName}
-                      </p>
-                      <p>
-                        {new Date(chat.createdAt).toLocaleTimeString()}
-                      </p>
+                      <p>{chat.sender.fullName}</p>
+                      <p>{new Date(chat.createdAt).toLocaleTimeString()}</p>
                     </div>
 
                     <p className="bg-gray-600 px-2 py-1 rounded-xl w-fit">
@@ -105,8 +101,7 @@ export default function Chatbody({ io }) {
                     </p>
                   </div>
 
-                  <div className="text-right text-xs mt-1 text-gray-500">
-                  </div>
+                  <div className="text-right text-xs mt-1 text-gray-500"></div>
                 </div>
               )}
             </div>

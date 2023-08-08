@@ -1,10 +1,10 @@
 import { useEffect } from "react";
-import BlogCard from "../component/BlogCard";
-import { useGetBlogsQuery } from "../app/services/blog/blogApiService";
+import BlogCard from "../../component/blog/BlogCard";
+import { useGetBlogsQuery } from "../../app/services/blog/blogApiService";
 import { useDispatch, useSelector } from "react-redux";
-import { selectBlogs } from "../app/services/blog/blogSlice";
-import { addBlog, setBlogs } from "../app/services/blog/blogSlice";
-import ChatIcon from "../component/ChatIcon";
+import { selectBlogs } from "../../app/services/blog/blogSlice";
+import { addBlog, setBlogs } from "../../app/services/blog/blogSlice";
+import ChatIcon from "../../component/chat/ChatIcon";
 
 export default function Blogs({ io }) {
   const { data, error, isLoading } = useGetBlogsQuery();

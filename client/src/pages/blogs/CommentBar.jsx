@@ -1,31 +1,7 @@
 import { AiOutlineClose } from "react-icons/ai";
-import CommentCard from "../component/comment/CommentCard";
+import CommentCard from "../../component/blog/CommentCard";
 
 export default function CommentBar({ setShowComment, showComment }) {
-  const WriteComment = ({ name }) => {
-    return (
-      <div className="bg-slate-700 rounded-lg mt-5 w-full p-4 shadow-lg">
-        <div className="flex items-center gap-1 mb-5">
-          <span className="font-bold bg-white h-8 w-8 rounded-full text-xl text-black flex items-center justify-center  ">
-            {name[0]}
-          </span>
-          <span className=" ml-2">{name}</span>
-        </div>
-
-        <form>
-          <textarea
-            className="w-full h-35 bg-slate-700 "
-            placeholder="Write a response..."
-          ></textarea>
-
-          <button className="ms-auto bg-green-600 hover:bg-slate-900 py-2 px-4 rounded-3xl flex items-center font-bold mt-5">
-            Respond
-          </button>
-        </form>
-      </div>
-    );
-  };
-
   return (
     <div
       className={`${
@@ -50,6 +26,30 @@ export default function CommentBar({ setShowComment, showComment }) {
       <CommentCard />
       <CommentCard />
       <CommentCard />
+    </div>
+  );
+}
+
+export function WriteComment({ name }) {
+  return (
+    <div className="bg-slate-700 rounded-lg mt-5 w-full p-4 shadow-lg">
+      <div className="flex items-center gap-1 mb-5">
+        <span className="font-bold bg-white h-8 w-8 rounded-full text-xl text-black flex items-center justify-center  ">
+          {name[0]}
+        </span>
+        <span className=" ml-2">{name}</span>
+      </div>
+
+      <form>
+        <textarea
+          className="w-full h-35 bg-slate-700 "
+          placeholder="Write a response..."
+        ></textarea>
+
+        <button className="ms-auto bg-green-600 hover:bg-slate-900 py-2 px-4 rounded-3xl flex items-center font-bold mt-5">
+          Respond
+        </button>
+      </form>
     </div>
   );
 }
