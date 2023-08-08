@@ -73,7 +73,9 @@ module.exports = {
         });
       }
 
-      await sails.helpers.setCachePost(`cached_post_${id}`, post);
+      const sanitizedPost = await sails.helpers.sanitizePost([post]);
+
+      await sails.helpers.setCachePost(`cached_post_${id}`, ...sanitizedPost);
 
       if (user) {
         const userId = user.id;

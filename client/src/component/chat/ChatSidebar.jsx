@@ -1,12 +1,12 @@
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { useEffect } from "react";
-import { getContactedPerson } from "../app/services/chat/chatSlice";
+import { getContactedPerson } from "../../app/services/chat/chatSlice";
 
 export default function ChatSidebar() {
   const dispatch = useDispatch();
-  const { contactedPerson, isLoading, isError } = useSelector((state) =>
-    state.chat
+  const { contactedPerson, isLoading, isError } = useSelector(
+    (state) => state.chat
   );
 
   useEffect(() => {
@@ -30,23 +30,21 @@ export default function ChatSidebar() {
       <div className="flex justify-between items-center border-b border-slate-950 h-12 px-3">
         <h1 className="text-xl text-white font-bold">Chats</h1>
       </div>
-      {contacts.length != 0
-        ? (
-          <>
-            <div className="flex flex-col my-1 gap-1 overflow-y-auto h-[calc(100%-3rem)] scrollbar-thin scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-500 scrollbar-thumb-rounded-lg">
-              {contacts.map((person, index) => (
-                <ChatCard key={index} person={person} />
-              ))}
-            </div>
-          </>
-        )
-        : (
-          <div className="flex justify-center items-center p-3">
-            <h1 className="text-md text-gray-500 font-bold block">
-              Oops! You have no conversation to show.
-            </h1>
+      {contacts.length != 0 ? (
+        <>
+          <div className="flex flex-col my-1 gap-1 overflow-y-auto h-[calc(100%-3rem)] scrollbar-thin scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-500 scrollbar-thumb-rounded-lg">
+            {contacts.map((person, index) => (
+              <ChatCard key={index} person={person} />
+            ))}
           </div>
-        )}
+        </>
+      ) : (
+        <div className="flex justify-center items-center p-3">
+          <h1 className="text-md text-gray-500 font-bold block">
+            Oops! You have no conversation to show.
+          </h1>
+        </div>
+      )}
     </div>
   );
 }
@@ -61,9 +59,7 @@ export function ChatCard({ person }) {
             alt="server icon"
             className="w-8 h-8 rounded-full"
           />
-          <h1 className="text-md font-bold">
-            {person.fullName}
-          </h1>
+          <h1 className="text-md font-bold">{person.fullName}</h1>
         </div>
       </div>
     </Link>
