@@ -44,7 +44,9 @@ module.exports = {
         });
       }
 
-      await sails.helpers.setCachePost(`cached_post_${id}`, post);
+      const sanitizedPost = await sails.helpers.sanitizePost([post]);
+
+      await sails.helpers.setCachePost(`cached_post_${id}`, ...sanitizedPost);
 
       return exits.success({
         message: "Post found",

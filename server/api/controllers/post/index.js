@@ -31,7 +31,7 @@ module.exports = {
       }
       console.log("Cache Miss");
 
-      // const { data } = await axios.get(
+      // const { data: posts } = await axios.get(
       //   "https://jsonplaceholder.typicode.com/photos"
       // );
 
@@ -49,9 +49,11 @@ module.exports = {
 
       console.log("Setting cache...");
 
+      const sanitizedPosts = await sails.helpers.sanitizePost(posts);
+
       // await sails.helpers.setCachePost("cached_posts", data);
 
-      await sails.helpers.setCachePost("cached_posts", posts);
+      await sails.helpers.setCachePost("cached_posts", sanitizedPosts);
 
       return exits.success({
         posts,
