@@ -35,5 +35,5 @@ module.exports.policies = {
   // "chat/get-person-contacts": "is-logged-in",
   // "chat/send": "is-logged-in",
   // "chat/join-room": "is-logged-in",
-  // "user/get-user": "is-logged-in",
+  "user/get-user": "is-logged-in",
 };
