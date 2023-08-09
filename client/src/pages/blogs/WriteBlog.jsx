@@ -51,7 +51,7 @@ export default function Blog() {
   };
 
   return (
-    <div className="flex justify-center  ">
+    <div className="bg-slate-900 flex justify-center items-start min-h-[calc(100vh-3.5rem)] p-3">
       <div className=" bg-slate-800 p-16 rounded-xl shadow-2xl w-4/6">
         <h1 className="text-4xl font-bold mb-4">Blog</h1>
 
