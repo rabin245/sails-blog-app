@@ -13,11 +13,12 @@ const getContactedPerson = createAsyncThunk(
     const response = await axios.get("/api/chat/person-contacts");
 
     if (id) {
-      const currentContact = response.data.contacts.some(
-        (contact) => contact.id === id,
+      const contacts = response.data.contacts;
+      const isContactExist = contacts.some(
+        (contact) => contact.id == id,
       );
 
-      if (!currentContact) {
+      if (!isContactExist) {
         const newContact = await axios.get(`/api/user/${id}`);
         response.data.contacts = [
           ...response.data.contacts,
