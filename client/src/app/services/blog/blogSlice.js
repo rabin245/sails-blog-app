@@ -32,11 +32,61 @@ export const deleteBlog = createAsyncThunk("blog/deleteBlog", async (id) => {
   return id;
 });
 
+export const likePost = createAsyncThunk(
+  "blog/likePost",
+  async (postId, { dispatch, getState }) => {
+    await axios.post(`/api/posts/${postId}/like`);
+    // const { currentBlog } = getState().blog;
+    // const { user } = getState().auth;
+    // const updatedCurrentBlog = {
+    //   ...currentBlog,
+    //   likers: [...currentBlog.likers, user],
+    // };
+    // dispatch(blogSlice.actions.updateCurrentBlog(updatedCurrentBlog));
+  },
+);
+
+export const unlikePost = createAsyncThunk(
+  "blog/unlikePost",
+  async (postId, { dispatch, getState }) => {
+    await axios.post(`/api/posts/${postId}/unlike`);
+    // const { currentBlog } = getState().blog;
+    // const { user } = getState().auth;
+    // const updatedLikers = currentBlog.likers.filter(
+    //   (liker) => liker.id !== user.id,
+    // );
+    // const updatedCurrentBlog = {
+    //   ...currentBlog,
+    //   likers: updatedLikers,
+    // };
+    // dispatch(blogSlice.actions.updateCurrentBlog(updatedCurrentBlog));
+  },
+);
+
+export const commentOnPost = createAsyncThunk(
+  "blog/commentOnPost",
+  async ({ postId, content }, { dispatch, getState }) => {
+    const response = await axios.post(`/api/posts/${postId}/comment`, {
+      content,
+    });
+    const newComment = response.data.data;
+    const { currentBlog } = getState().blog;
+    const updatedComments = [...currentBlog.comments, newComment];
+    const updatedCurrentBlog = {
+      ...currentBlog,
+      comments: updatedComments,
+    };
+
+    dispatch(blogSlice.actions.updateCurrentBlog(updatedCurrentBlog));
+  },
+);
+
 const blogSlice = createSlice({
   name: "blog",
   initialState: {
     blogs: [],
     currentBlog: null,
+    isCurrentBlogLiked: false,
     isLoading: false,
     isError: false,
     error: null,
@@ -44,6 +94,9 @@ const blogSlice = createSlice({
   reducers: {
     addBlog: (state, action) => {
       state.blogs.push(action.payload);
+    },
+    updateCurrentBlog: (state, action) => {
+      state.currentBlog = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -70,6 +123,7 @@ const blogSlice = createSlice({
         state.isLoading = false;
         state.isError = false;
         state.currentBlog = action.payload.post;
+        state.isCurrentBlogLiked = action.payload.isLiked;
       })
       .addCase(getBlogById.rejected, (state, action) => {
         state.isLoading = false;
@@ -93,7 +147,7 @@ const blogSlice = createSlice({
   },
 });
 
-export const { setBlogs, addBlog } = blogSlice.actions;
+export const { addBlog } = blogSlice.actions;
 
 export default blogSlice.reducer;
 
@@ -102,3 +156,5 @@ export const selectCurrentBlog = (state) => state.blog.currentBlog;
 export const selectIsLoading = (state) => state.blog.isLoading;
 export const selectIsError = (state) => state.blog.isError;
 export const selectError = (state) => state.blog.error;
+export const selectIsCurrentBlogLiked = (state) =>
+  state.blog.isCurrentBlogLiked;

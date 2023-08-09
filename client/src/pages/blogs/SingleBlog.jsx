@@ -1,135 +1,177 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { parseJSON } from "../../utils/parseJson";
-import { useGetBlogByIdQuery } from "../../app/services/blog/blogApiService";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { selectUser } from "../../app/services/auth/authSlice";
 import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
 import { FaRegComment } from "react-icons/fa";
 import { IoShareOutline } from "react-icons/io5";
 import { FiLink } from "react-icons/fi";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import CommentBar from "./CommentBar";
 import ChatIcon from "../../component/chat/ChatIcon";
-import { likePost, unlikePost } from "../../utils/likeAndComment";
 import UserAvatar from "../../component/UserAvatar";
 import PostInteractionIcons from "../../component/blog/PostInteractionIcons";
+import {
+  commentOnPost,
+  getBlogById,
+  likePost,
+  selectCurrentBlog,
+  selectError,
+  selectIsCurrentBlogLiked,
+  selectIsError,
+  selectIsLoading,
+  unlikePost,
+} from "../../app/services/blog/blogSlice";
 
 export default function SingleBlog() {
   const [isCommentBarOpen, setIsCommentBarOpen] = useState(false);
-  const [allComments, setAllComments] = useState([]);
 
   const { id } = useParams();
 
+  const dispatch = useDispatch();
   const user = useSelector(selectUser);
 
-  const { data, error, isLoading } = useGetBlogByIdQuery(id);
-
   useEffect(() => {
-    if (data) {
-      setAllComments(data.post.comments);
+    dispatch(getBlogById(id));
+  }, [dispatch, id]);
+
+  const currentBlog = useSelector(selectCurrentBlog);
+  const isLoading = useSelector(selectIsLoading);
+  const isError = useSelector(selectIsError);
+  const error = useSelector(selectError);
+  const isCurrentBlogLiked = useSelector(selectIsCurrentBlogLiked);
+
+  const blog = useMemo(() => {
+    if (currentBlog) {
+      return {
+        ...currentBlog,
+        content: parseJSON(currentBlog.content),
+      };
     }
-  }, [data]);
+  }, [currentBlog]);
 
-  if (isLoading) return <div>Loading...</div>;
+  const postComments = useMemo(() => {
+    if (currentBlog) {
+      return currentBlog.comments;
+    }
+  }, [currentBlog]);
 
-  if (error) {
+  const noOfPostLikers = currentBlog?.likers?.length || 0;
+
+  const onCommentSubmit = (message) => {
+    dispatch(commentOnPost({ postId: id, content: message }));
+  };
+
+  const handlePostLike = () => {
+    dispatch(likePost(id));
+  };
+
+  const handlePostUnlike = () => {
+    dispatch(unlikePost(id));
+  };
+
+  const layout = (content) => {
     return (
-      <div>
-        {error.originalStatus} {error.data}
+      <div className="bg-slate-900 flex min-h-[calc(100vh-3.5rem)] max-h-fit relative">
+        <div className=" w-screen flex flex-col justify-center items-center pt-5 h-full">
+          <div className="flex justify-center items-center  mb-3 w-[80vw]">
+            {content}
+          </div>
+        </div>
+        <ChatIcon />
+        {user && (
+          <CommentBar
+            setIsCommentBarOpen={setIsCommentBarOpen}
+            isCommentBarOpen={isCommentBarOpen}
+            postComments={postComments}
+            user={user}
+            onCommentSubmit={onCommentSubmit}
+          />
+        )}
       </div>
+    );
+  };
+
+  if (isLoading) {
+    return layout(<div>Loading...</div>);
+  }
+
+  if (isError) {
+    return layout(
+      <div className="text-red-500">
+        <h1 className="text-xl text-center">Error</h1>
+        <p>{error.message}</p>
+      </div>,
     );
   }
 
-  const content = parseJSON(data.post.content);
-
-  const blog = {
-    ...data.post,
-    content,
-  };
-
   return (
-    <div className="bg-slate-900 flex min-h-[calc(100vh-3.5rem)] max-h-fit relative">
-      <div className=" w-screen flex flex-col justify-center items-center pt-5 h-full">
-        <div className="flex justify-center items-center  mb-3 w-[80vw]">
-          {isLoading
-            ? <div>Loading...</div>
-            : (
-              <div className=" bg-slate-800 py-5 px-10 rounded-xl shadow-2xl w-full">
-                <h1 className="text-4xl font-bold mb-5">{blog.title}</h1>
+    layout(
+      <div className=" bg-slate-800 py-5 px-10 rounded-xl shadow-2xl w-full">
+        <h1 className="text-4xl font-bold mb-5">{blog?.title}</h1>
 
-                <BlogMetaData blog={blog} user={user} />
+        <BlogMetaData blog={blog} user={user} />
 
-                <LikesAndCommentsSection
-                  setIsCommentBarOpen={setIsCommentBarOpen}
-                  isCommentBarOpen={isCommentBarOpen}
-                  likers={blog.likers}
-                  comments={allComments}
-                  user={user}
-                />
-
-                <div
-                  className="pe-2 text-xl max-w-[80vw]  break-words"
-                  dangerouslySetInnerHTML={blog.content}
-                >
-                </div>
-              </div>
-            )}
-        </div>
-      </div>
-      <ChatIcon />
-      {user && (
-        <CommentBar
+        <LikesAndCommentsSection
           setIsCommentBarOpen={setIsCommentBarOpen}
           isCommentBarOpen={isCommentBarOpen}
-          postId={id}
-          comments={blog.comments}
-          allComments={allComments}
-          setAllComments={setAllComments}
+          noOfLikers={noOfPostLikers}
+          comments={postComments}
           user={user}
+          isLiked={isCurrentBlogLiked}
+          handlePostLike={handlePostLike}
+          handlePostUnlike={handlePostUnlike}
         />
-      )}
-    </div>
+
+        <div
+          className="pe-2 text-xl max-w-[80vw]  break-words"
+          dangerouslySetInnerHTML={blog?.content}
+        >
+        </div>
+      </div>,
+    )
   );
 }
 
 export function LikesAndCommentsSection({
   isCommentBarOpen,
   setIsCommentBarOpen,
-  likers,
+  noOfLikers,
+  isLiked,
   comments,
   user,
+  handlePostLike,
+  handlePostUnlike,
 }) {
-  const [noOfLikers, setNoOfLikers] = useState(likers.length);
+  const navigate = useNavigate();
 
-  const [isFilled, setIsFilled] = useState(
-    ((likers.length != 0 && user) &&
-        likers.find((liker) => liker.id == user.id))
-      ? true
-      : false,
-  );
+  const [isPostLiked, setIsPostLiked] = useState(isLiked || false);
+  const [noOfPostLikers, setNoOfLikers] = useState(noOfLikers || 0);
 
   const [showShare, setShowShare] = useState(false);
 
-  const { id } = useParams();
-
   const toggleLike = async () => {
     if (!user) {
+      navigate("/login");
       return;
     }
 
-    setIsFilled((prev) => !prev);
+    setIsPostLiked((prev) => !prev);
 
-    if (isFilled) {
-      setNoOfLikers(noOfLikers - 1);
-      await unlikePost(id);
+    if (isPostLiked) {
+      console.log("unliking");
+      setNoOfLikers((prev) => prev - 1);
+      handlePostUnlike();
     } else {
-      setNoOfLikers(noOfLikers + 1);
-      await likePost(id);
+      console.log("liking post");
+      setNoOfLikers((prev) => prev + 1);
+      handlePostLike();
     }
   };
 
   const toggleComment = () => {
     if (!user) {
+      navigate("/login");
       return;
     }
 
@@ -156,8 +198,8 @@ export function LikesAndCommentsSection({
   return (
     <div>
       <div className="flex p-2 border-y border-gray-600 mb-10 relative gap-2 items-center">
-        <PostInteractionIcons value={noOfLikers}>
-          {isFilled
+        <PostInteractionIcons value={noOfPostLikers}>
+          {isPostLiked
             ? (
               <AiFillHeart
                 className="text-2xl cursor-pointer"
@@ -172,7 +214,7 @@ export function LikesAndCommentsSection({
               />
             )}
         </PostInteractionIcons>
-        <PostInteractionIcons value={comments.length}>
+        <PostInteractionIcons value={comments?.length}>
           <FaRegComment
             className="text-2xl ml-10 cursor-pointer"
             onClick={toggleComment}
@@ -203,16 +245,16 @@ export function LikesAndCommentsSection({
 export function BlogMetaData({ blog, user }) {
   return (
     <div className="flex gap-2 items-center mb-10">
-      <UserAvatar name={blog.author.fullName} customStyle={"h-10 w-10"} />
+      <UserAvatar name={blog?.author?.fullName} customStyle={"h-10 w-10"} />
       <div>
         <div className="flex text-sm  items-center gap-2">
-          <span>By {blog.author.fullName}</span>
+          <span>By {blog?.author?.fullName}</span>
           {user &&
-            (user.id != blog.author.id
+            (user.id != blog?.author?.id
               ? (
                 <>
                   <span>·</span>
-                  <Link to={`/chat/${blog.author.id}`}>
+                  <Link to={`/chat/${blog?.author?.id}`}>
                     <span className="text-blue-600">Message</span>
                   </Link>
                 </>
@@ -220,7 +262,7 @@ export function BlogMetaData({ blog, user }) {
               : null)}
         </div>
         <span className="text-sm text-gray-500 italic">
-          {new Date(blog.createdAt).toLocaleString()}
+          {new Date(blog?.createdAt).toLocaleString()}
         </span>
       </div>
     </div>

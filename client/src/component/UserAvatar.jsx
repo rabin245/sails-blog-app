@@ -4,7 +4,7 @@ export default function UserAvatar({ name, toggleModal, customStyle }) {
       className={`font-bold bg-white ${customStyle} rounded-full text-xl text-black flex items-center justify-center  `}
       onClick={toggleModal}
     >
-      {name[0]}
+      {name ? name[0] : ""}
     </span>
   );
 }
