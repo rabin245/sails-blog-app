@@ -7,7 +7,7 @@ import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
 import { FaRegComment } from "react-icons/fa";
 import { IoShareOutline } from "react-icons/io5";
 import { FiLink } from "react-icons/fi";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CommentBar from "./CommentBar";
 import ChatIcon from "../../component/chat/ChatIcon";
 import { likePost, unlikePost } from "../../utils/likeAndComment";
@@ -23,6 +23,12 @@ export default function SingleBlog() {
   const user = useSelector(selectUser);
 
   const { data, error, isLoading } = useGetBlogByIdQuery(id);
+
+  useEffect(() => {
+    if (data) {
+      setAllComments(data.post.comments);
+    }
+  }, [data]);
 
   if (isLoading) return <div>Loading...</div>;
 
@@ -40,8 +46,6 @@ export default function SingleBlog() {
     ...data.post,
     content,
   };
-
-  console.log(blog);
 
   return (
     <div className="bg-slate-900 flex min-h-[calc(100vh-3.5rem)] max-h-fit relative">
@@ -73,15 +77,17 @@ export default function SingleBlog() {
         </div>
       </div>
       <ChatIcon />
-      <CommentBar
-        setIsCommentBarOpen={setIsCommentBarOpen}
-        isCommentBarOpen={isCommentBarOpen}
-        postId={id}
-        comments={blog.comments}
-        allComments={allComments}
-        setAllComments={setAllComments}
-        user={user}
-      />
+      {user && (
+        <CommentBar
+          setIsCommentBarOpen={setIsCommentBarOpen}
+          isCommentBarOpen={isCommentBarOpen}
+          postId={id}
+          comments={blog.comments}
+          allComments={allComments}
+          setAllComments={setAllComments}
+          user={user}
+        />
+      )}
     </div>
   );
 }

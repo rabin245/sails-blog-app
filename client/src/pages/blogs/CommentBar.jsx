@@ -15,6 +15,9 @@ export default function CommentBar({
   useEffect(() => {
     setAllComments(comments);
   }, [comments]);
+
+  console.log(allComments);
+
   return (
     <div
       className={`${
@@ -85,7 +88,7 @@ export function WriteComment({ name, postId, setComments }) {
           placeholder="Write a response..."
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-        ></textarea>
+        />
 
         <button className="ms-auto bg-green-600 hover:bg-slate-900 py-2 px-4 rounded-3xl flex items-center font-bold mt-5">
           Respond
