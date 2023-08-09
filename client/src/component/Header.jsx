@@ -33,7 +33,7 @@ export default function Header() {
   };
 
   return (
-    <div className="sticky top-0 left-0 z-30 bg-slate-800 flex justify-center shadow-xl">
+    <div className="z-40 sticky top-0 left-0  bg-slate-800 flex justify-center shadow-xl">
       <nav
         className={`flex justify-between items-center h-14 ${
           isChatPage ? "w-full px-3" : "w-[80%]"
