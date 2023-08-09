@@ -7,11 +7,14 @@ import { AiFillHeart } from "react-icons/ai";
 import { FaRegComment } from "react-icons/fa";
 import { IoShareOutline } from "react-icons/io5";
 import { FiLink } from "react-icons/fi";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CommentBar from "./CommentBar";
 import ChatIcon from "../../component/chat/ChatIcon";
+import { likePost, unlikePost } from "../../utils/likeAndComment";
 export default function SingleBlog() {
-  const [showComment, setShowComment] = useState(false);
+  const [isCommentBarOpen, setIsCommentBarOpen] = useState(false);
+  const [allComments, setAllComments] = useState([]);
+
   const { id } = useParams();
 
   const user = useSelector(selectUser);
@@ -34,6 +37,8 @@ export default function SingleBlog() {
     content,
   };
 
+  console.log(blog);
+
   return (
     <div className="bg-slate-900 flex min-h-[calc(100vh-3.5rem)] max-h-fit relative">
       <div className=" w-screen flex flex-col justify-center items-center pt-5 h-full">
@@ -47,8 +52,11 @@ export default function SingleBlog() {
               <BlogMetaData blog={blog} user={user} />
 
               <LikesAndCommentsSection
-                setShowComment={setShowComment}
-                showComment={showComment}
+                setIsCommentBarOpen={setIsCommentBarOpen}
+                isCommentBarOpen={isCommentBarOpen}
+                likers={blog.likers}
+                comments={allComments}
+                user={user}
               />
 
               <div
@@ -60,24 +68,50 @@ export default function SingleBlog() {
         </div>
       </div>
       <ChatIcon />
-      <CommentBar setShowComment={setShowComment} showComment={showComment} />
+      <CommentBar
+        setIsCommentBarOpen={setIsCommentBarOpen}
+        isCommentBarOpen={isCommentBarOpen}
+        postId={id}
+        comments={blog.comments}
+        allComments={allComments}
+        setAllComments={setAllComments}
+      />
     </div>
   );
 }
 
-export function LikesAndCommentsSection({ showComment, setShowComment }) {
-  const [isFilled, setIsFilled] = useState(false);
+export function LikesAndCommentsSection({
+  isCommentBarOpen,
+  setIsCommentBarOpen,
+  likers,
+  comments,
+  user,
+}) {
+  const [noOfLikers, setNoOfLikers] = useState(likers.length);
+  const [isFilled, setIsFilled] = useState(
+    likers.length != 0 && likers.find((liker) => liker.id == user.id) != null
+      ? user.id == likers.find((liker) => liker.id == user.id).id
+      : false
+  );
   const [showShare, setShowShare] = useState(false);
+  const { id } = useParams();
 
-  const url = window.location.href;
-  const toggleLike = () => {
+  const toggleLike = async () => {
     setIsFilled(!isFilled);
+
+    if (isFilled) {
+      setNoOfLikers(noOfLikers - 1);
+      await unlikePost(id);
+    } else {
+      setNoOfLikers(noOfLikers + 1);
+      await likePost(id);
+    }
   };
 
   const toggleComment = () => {
     console.log("toggleComment");
-    console.log(showComment);
-    setShowComment(!showComment);
+    console.log(isCommentBarOpen);
+    setIsCommentBarOpen(!isCommentBarOpen);
   };
 
   const toggleShare = () => {
@@ -100,17 +134,19 @@ export function LikesAndCommentsSection({ showComment, setShowComment }) {
 
   return (
     <div>
-      <div className="flex p-2 border-y border-gray-600 mb-10 relative">
+      <div className="flex p-2 border-y border-gray-600 mb-10 relative gap-2 items-center">
         <AiFillHeart
           className={`text-2xl cursor-pointer ${
             isFilled ? "text-red-500" : ""
           }`}
           onClick={toggleLike}
         />
+        <span>{noOfLikers}</span>
         <FaRegComment
           className="text-2xl ml-10 cursor-pointer"
           onClick={toggleComment}
         />
+        <span>{comments.length}</span>
         <IoShareOutline
           className="text-2xl ml-auto cursor-pointer"
           onClick={toggleShare}
