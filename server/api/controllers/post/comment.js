@@ -46,11 +46,15 @@ module.exports = {
         post: postId,
       }).fetch();
 
+      const populatedComment = await Comment.findOne(comment.id).populate(
+        "user"
+      );
+
       await sails.helpers.removeCache(`cached_post_${postId}`);
 
       return exits.success({
         message: "Comment created successfully.",
-        data: comment,
+        data: populatedComment,
       });
     } catch (error) {
       return exits.serverError(error.message);

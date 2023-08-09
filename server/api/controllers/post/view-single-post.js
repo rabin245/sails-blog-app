@@ -63,15 +63,30 @@ module.exports = {
         });
       }
 
-      const post = await Post.findOne({ id }).populate("author").populate(
-        "comments",
-      ).populate("likers");
+      const post = await Post.findOne({ id })
+        .populate("author")
+        .populate("comments")
+        .populate("likers");
 
       if (!post) {
         return exits.notFound({
           message: "Post not found",
         });
       }
+
+      const userPopulatedComments = await Promise.all(
+        post.comments.map(async (comment) => {
+          const userPopulatedComment = await Comment.findOne({ id: comment.id })
+            .populate("user")
+            .intercept((err) => {
+              sails.log.error(`Error populating comment user: ${err}`);
+              return err;
+            });
+          return userPopulatedComment;
+        })
+      );
+
+      post.comments = userPopulatedComments;
 
       const sanitizedPost = await sails.helpers.sanitizePost([post]);
 
