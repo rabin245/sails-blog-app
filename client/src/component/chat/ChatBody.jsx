@@ -63,10 +63,7 @@ export default function Chatbody({ io }) {
             className="w-8 h-8 rounded-full"
           />
 
-          <h1 className="text-lg text-white font-bold">
-            {/* {chats[0].receiver.fullName} */}
-            User Name
-          </h1>
+          <h1 className="text-lg text-white font-bold">User Name</h1>
         </div>
       </div>
       <div className="flex flex-col justify-between bg-slate-800 min-h-[calc(100vh-6.5rem)]">

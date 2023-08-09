@@ -3,14 +3,16 @@ import { parseJSON } from "../../utils/parseJson";
 import { useGetBlogByIdQuery } from "../../app/services/blog/blogApiService";
 import { useSelector } from "react-redux";
 import { selectUser } from "../../app/services/auth/authSlice";
-import { AiFillHeart } from "react-icons/ai";
+import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
 import { FaRegComment } from "react-icons/fa";
 import { IoShareOutline } from "react-icons/io5";
 import { FiLink } from "react-icons/fi";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import CommentBar from "./CommentBar";
 import ChatIcon from "../../component/chat/ChatIcon";
 import { likePost, unlikePost } from "../../utils/likeAndComment";
+import UserAvatar from "../../component/UserAvatar";
+import PostInteractionIcons from "../../component/blog/PostInteractionIcons";
 export default function SingleBlog() {
   const [isCommentBarOpen, setIsCommentBarOpen] = useState(false);
   const [allComments, setAllComments] = useState([]);
@@ -135,22 +137,32 @@ export function LikesAndCommentsSection({
   return (
     <div>
       <div className="flex p-2 border-y border-gray-600 mb-10 relative gap-2 items-center">
-        <AiFillHeart
-          className={`text-2xl cursor-pointer ${
-            isFilled ? "text-red-500" : ""
-          }`}
-          onClick={toggleLike}
-        />
-        <span>{noOfLikers}</span>
-        <FaRegComment
-          className="text-2xl ml-10 cursor-pointer"
-          onClick={toggleComment}
-        />
-        <span>{comments.length}</span>
-        <IoShareOutline
-          className="text-2xl ml-auto cursor-pointer"
-          onClick={toggleShare}
-        />
+        <PostInteractionIcons value={noOfLikers}>
+          {isFilled ? (
+            <AiFillHeart
+              className="text-2xl cursor-pointer"
+              onClick={toggleLike}
+              fill="red"
+            />
+          ) : (
+            <AiOutlineHeart
+              className="text-2xl cursor-pointer"
+              onClick={toggleLike}
+            />
+          )}
+        </PostInteractionIcons>
+        <PostInteractionIcons value={comments.length}>
+          <FaRegComment
+            className="text-2xl ml-10 cursor-pointer"
+            onClick={toggleComment}
+          />
+        </PostInteractionIcons>
+        <PostInteractionIcons>
+          <IoShareOutline
+            className="text-2xl ml-auto cursor-pointer"
+            onClick={toggleShare}
+          />
+        </PostInteractionIcons>
       </div>
       <div>
         <div
@@ -170,9 +182,7 @@ export function LikesAndCommentsSection({
 export function BlogMetaData({ blog, user }) {
   return (
     <div className="flex gap-2 items-center mb-10">
-      <span className="font-bold bg-white h-10 w-10 rounded-full text-xl text-black flex items-center justify-center  ">
-        {blog.author.fullName[0]}
-      </span>
+      <UserAvatar name={blog.author.fullName} customStyle={"h-10 w-10"} />
       <div>
         <div className="flex text-sm  items-center gap-2">
           <span>By {blog.author.fullName}</span>
@@ -180,7 +190,9 @@ export function BlogMetaData({ blog, user }) {
             (user.id != blog.author.id ? (
               <>
                 <span>·</span>
-                <Link to={`/chat/${blog.author.id}`}>Message</Link>
+                <Link to={`/chat/${blog.author.id}`}>
+                  <span className="text-blue-600">Message</span>
+                </Link>
               </>
             ) : null)}
         </div>

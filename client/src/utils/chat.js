@@ -1,7 +1,6 @@
 import axios from "axios";
 
 export const getChat = async (io, receiverId, userId) => {
-  // const io = connectToSocket();
   console.log("getting chat\n\n\n\n");
   return new Promise((resolve) => {
     io.socket.get(
@@ -17,7 +16,6 @@ export const getChat = async (io, receiverId, userId) => {
 };
 
 export const postChat = async (io, receiverId, senderId, message) => {
-  // const io = connectToSocket();
   console.log("posting chat\n\n\n\n");
   // return new Promise((resolve) => {
   //   io.socket.post(
