@@ -10,6 +10,7 @@ export default function CommentBar({
   comments,
   allComments,
   setAllComments,
+  user,
 }) {
   useEffect(() => {
     setAllComments(comments);
@@ -30,7 +31,7 @@ export default function CommentBar({
         />
       </div>
       <WriteComment
-        name={"Aayush"}
+        name={user.fullName}
         postId={postId}
         setComments={setAllComments}
       />
@@ -45,7 +46,7 @@ export default function CommentBar({
         .map((comment, index) => (
           <CommentCard
             key={index}
-            name={"Aayush Raut"}
+            name={comment.user.fullName}
             message={comment.content}
             date={new Date(comment.createdAt).toLocaleDateString()}
           />

@@ -80,6 +80,7 @@ export default function SingleBlog() {
         comments={blog.comments}
         allComments={allComments}
         setAllComments={setAllComments}
+        user={user}
       />
     </div>
   );
