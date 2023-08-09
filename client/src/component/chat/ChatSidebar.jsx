@@ -10,10 +10,10 @@ export default function ChatSidebar() {
   );
 
   const match = useMatch("/chat/:id");
+  const id = match?.params?.id;
 
   useEffect(() => {
     if (match) {
-      const id = match.params.id;
       dispatch(getContactedPerson(id));
     } else {
       dispatch(getContactedPerson());
@@ -45,7 +45,11 @@ export default function ChatSidebar() {
         ? (
           <div className="flex flex-col my-1 gap-1 overflow-y-auto h-[calc(100%-3rem)] scrollbar-thin scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-500 scrollbar-thumb-rounded-lg">
             {contactedPerson.map((person, index) => (
-              <ChatCard key={index} person={person} />
+              <ChatCard
+                key={index}
+                person={person}
+                isActive={person.id == id}
+              />
             ))}
           </div>
         )
@@ -60,11 +64,15 @@ export default function ChatSidebar() {
   );
 }
 
-export function ChatCard({ person }) {
+export function ChatCard({ person, isActive }) {
   return (
     <Link to={`/chat/${person.id}`}>
       <div className="flex items-center px-2">
-        <div className="flex gap-2 items-center p-2 hover:bg-slate-700 w-full rounded text-gray-200 hover:text-white hover:shadow">
+        <div
+          className={`flex gap-2 items-center p-2 hover:bg-slate-700 w-full rounded text-gray-200 hover:text-white hover:shadow ${
+            isActive && "bg-slate-700 shadow"
+          }`}
+        >
           <img
             src="https://picsum.photos/200"
             alt="server icon"
