@@ -57,4 +57,5 @@ module.exports.routes = {
   "POST /chat/send": "chat/send",
   "GET /chat/person-contacts": "chat/get-person-contacts",
   "GET /chat/join-room": "chat/join-room",
+  "GET /user/:id": "user/get-user",
 };
