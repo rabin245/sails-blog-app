@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link, useMatch } from "react-router-dom";
 import { useEffect } from "react";
 import { getContactedPerson } from "../../app/services/chat/chatSlice";
 
@@ -9,9 +9,16 @@ export default function ChatSidebar() {
     (state) => state.chat,
   );
 
+  const match = useMatch("/chat/:id");
+
   useEffect(() => {
-    dispatch(getContactedPerson());
-  }, [dispatch]);
+    if (match) {
+      const id = match.params.id;
+      dispatch(getContactedPerson(id));
+    } else {
+      dispatch(getContactedPerson());
+    }
+  }, [dispatch, match]);
 
   const layout = (content) => (
     <div className="bg-slate-900 w-1/5 z-10 shadow-2xl h-full">
@@ -32,14 +39,12 @@ export default function ChatSidebar() {
     );
   }
 
-  const contacts = contactedPerson.contacts || [];
-
   return layout(
     <>
-      {contacts.length != 0
+      {contactedPerson.length != 0
         ? (
           <div className="flex flex-col my-1 gap-1 overflow-y-auto h-[calc(100%-3rem)] scrollbar-thin scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-500 scrollbar-thumb-rounded-lg">
-            {contacts.map((person, index) => (
+            {contactedPerson.map((person, index) => (
               <ChatCard key={index} person={person} />
             ))}
           </div>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router";
 import { getChat, postChat } from "../../utils/chat";
 import { useSelector } from "react-redux/es/hooks/useSelector";
@@ -11,6 +11,13 @@ export default function Chatbody({ io }) {
   const user = useSelector(selectUser);
 
   const [chats, setChats] = useState([]);
+
+  const contactedPerson = useSelector((state) => state.chat.contactedPerson);
+
+  const currentContact = useMemo(() => {
+    const contact = contactedPerson.find((person) => person.id == id);
+    return contact ? contact.fullName : "";
+  }, [contactedPerson]);
 
   useEffect(() => {
     io.socket.on("connect", () => {
@@ -64,8 +71,7 @@ export default function Chatbody({ io }) {
           />
 
           <h1 className="text-lg text-white font-bold">
-            {/* {chats[0].receiver.fullName} */}
-            User Name
+            {currentContact}
           </h1>
         </div>
       </div>
