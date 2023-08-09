@@ -13,6 +13,7 @@ import ChatIcon from "../../component/chat/ChatIcon";
 import { likePost, unlikePost } from "../../utils/likeAndComment";
 import UserAvatar from "../../component/UserAvatar";
 import PostInteractionIcons from "../../component/blog/PostInteractionIcons";
+
 export default function SingleBlog() {
   const [isCommentBarOpen, setIsCommentBarOpen] = useState(false);
   const [allComments, setAllComments] = useState([]);
@@ -25,12 +26,13 @@ export default function SingleBlog() {
 
   if (isLoading) return <div>Loading...</div>;
 
-  if (error)
+  if (error) {
     return (
       <div>
         {error.originalStatus} {error.data}
       </div>
     );
+  }
 
   const content = parseJSON(data.post.content);
 
@@ -45,28 +47,29 @@ export default function SingleBlog() {
     <div className="bg-slate-900 flex min-h-[calc(100vh-3.5rem)] max-h-fit relative">
       <div className=" w-screen flex flex-col justify-center items-center pt-5 h-full">
         <div className="flex justify-center items-center  mb-3 w-[80vw]">
-          {isLoading ? (
-            <div>Loading...</div>
-          ) : (
-            <div className=" bg-slate-800 py-5 px-10 rounded-xl shadow-2xl w-full">
-              <h1 className="text-4xl font-bold mb-5">{blog.title}</h1>
+          {isLoading
+            ? <div>Loading...</div>
+            : (
+              <div className=" bg-slate-800 py-5 px-10 rounded-xl shadow-2xl w-full">
+                <h1 className="text-4xl font-bold mb-5">{blog.title}</h1>
 
-              <BlogMetaData blog={blog} user={user} />
+                <BlogMetaData blog={blog} user={user} />
 
-              <LikesAndCommentsSection
-                setIsCommentBarOpen={setIsCommentBarOpen}
-                isCommentBarOpen={isCommentBarOpen}
-                likers={blog.likers}
-                comments={allComments}
-                user={user}
-              />
+                <LikesAndCommentsSection
+                  setIsCommentBarOpen={setIsCommentBarOpen}
+                  isCommentBarOpen={isCommentBarOpen}
+                  likers={blog.likers}
+                  comments={allComments}
+                  user={user}
+                />
 
-              <div
-                className="pe-2 text-xl max-w-[80vw]  break-words"
-                dangerouslySetInnerHTML={blog.content}
-              ></div>
-            </div>
-          )}
+                <div
+                  className="pe-2 text-xl max-w-[80vw]  break-words"
+                  dangerouslySetInnerHTML={blog.content}
+                >
+                </div>
+              </div>
+            )}
         </div>
       </div>
       <ChatIcon />
@@ -90,16 +93,24 @@ export function LikesAndCommentsSection({
   user,
 }) {
   const [noOfLikers, setNoOfLikers] = useState(likers.length);
+
   const [isFilled, setIsFilled] = useState(
-    likers.length != 0 && likers.find((liker) => liker.id == user.id) != null
-      ? user.id == likers.find((liker) => liker.id == user.id).id
-      : false
+    ((likers.length != 0 && user) &&
+        likers.find((liker) => liker.id == user.id))
+      ? true
+      : false,
   );
+
   const [showShare, setShowShare] = useState(false);
+
   const { id } = useParams();
 
   const toggleLike = async () => {
-    setIsFilled(!isFilled);
+    if (!user) {
+      return;
+    }
+
+    setIsFilled((prev) => !prev);
 
     if (isFilled) {
       setNoOfLikers(noOfLikers - 1);
@@ -111,13 +122,14 @@ export function LikesAndCommentsSection({
   };
 
   const toggleComment = () => {
-    console.log("toggleComment");
-    console.log(isCommentBarOpen);
+    if (!user) {
+      return;
+    }
+
     setIsCommentBarOpen(!isCommentBarOpen);
   };
 
   const toggleShare = () => {
-    console.log("toggleShare");
     setShowShare(!showShare);
   };
 
@@ -138,18 +150,20 @@ export function LikesAndCommentsSection({
     <div>
       <div className="flex p-2 border-y border-gray-600 mb-10 relative gap-2 items-center">
         <PostInteractionIcons value={noOfLikers}>
-          {isFilled ? (
-            <AiFillHeart
-              className="text-2xl cursor-pointer"
-              onClick={toggleLike}
-              fill="red"
-            />
-          ) : (
-            <AiOutlineHeart
-              className="text-2xl cursor-pointer"
-              onClick={toggleLike}
-            />
-          )}
+          {isFilled
+            ? (
+              <AiFillHeart
+                className="text-2xl cursor-pointer"
+                onClick={toggleLike}
+                fill="red"
+              />
+            )
+            : (
+              <AiOutlineHeart
+                className="text-2xl cursor-pointer"
+                onClick={toggleLike}
+              />
+            )}
         </PostInteractionIcons>
         <PostInteractionIcons value={comments.length}>
           <FaRegComment
@@ -187,14 +201,16 @@ export function BlogMetaData({ blog, user }) {
         <div className="flex text-sm  items-center gap-2">
           <span>By {blog.author.fullName}</span>
           {user &&
-            (user.id != blog.author.id ? (
-              <>
-                <span>·</span>
-                <Link to={`/chat/${blog.author.id}`}>
-                  <span className="text-blue-600">Message</span>
-                </Link>
-              </>
-            ) : null)}
+            (user.id != blog.author.id
+              ? (
+                <>
+                  <span>·</span>
+                  <Link to={`/chat/${blog.author.id}`}>
+                    <span className="text-blue-600">Message</span>
+                  </Link>
+                </>
+              )
+              : null)}
         </div>
         <span className="text-sm text-gray-500 italic">
           {new Date(blog.createdAt).toLocaleString()}
