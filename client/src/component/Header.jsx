@@ -6,6 +6,8 @@ import {
 } from "../app/services/auth/authSlice";
 import { useLogoutMutation } from "../app/services/auth/authApiService";
 import { useState } from "react";
+import { RxPencil2 } from "react-icons/rx";
+import UserAvatar from "./UserAvatar";
 
 export default function Header() {
   const [showModal, setShowModal] = useState(false);
@@ -33,7 +35,7 @@ export default function Header() {
   };
 
   return (
-    <div className="sticky top-0 left-0 z-30 bg-slate-800 flex justify-center shadow-xl">
+    <div className="z-40 sticky top-0 left-0  bg-slate-800 flex justify-center shadow-xl">
       <nav
         className={`flex justify-between items-center h-14 ${
           isChatPage ? "w-full px-3" : "w-[80%]"
@@ -43,23 +45,23 @@ export default function Header() {
           BlogTalk
         </Link>
         {loggedInUser ? (
-          <div className="flex gap-2 text-white font-bold relative">
+          <div className="flex gap-2 text-white font-bold relative items-center">
             {!isChatPage && (
               <Link
                 to="/blogs/new"
-                className="bg-slate-700 hover:bg-slate-900 py-2 px-4 rounded-xl flex items-center"
+                className=" hover:text-slate-400 py-2 px-4 rounded-xl flex items-center font-medium"
               >
-                Add New
+                <RxPencil2 className="me-2 text-xl" />
+                Write
               </Link>
             )}
 
             <div className="cursor-pointer">
-              <span
-                className="font-bold bg-white h-10 w-10 rounded-full text-xl text-black flex items-center justify-center  "
-                onClick={toggleModal}
-              >
-                {loggedInUser.fullName[0]}
-              </span>
+              <UserAvatar
+                name={loggedInUser.fullName}
+                toggleModal={toggleModal}
+                customStyle={"h-8 w-8"}
+              />
 
               <div
                 className={`w-40 absolute  right-0 top-12 bg-slate-700  py-2 shadow-lg rounded-lg ${
