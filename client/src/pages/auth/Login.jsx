@@ -20,6 +20,8 @@ export default function Login() {
       ...prevValue,
       [name]: value,
     }));
+
+    setErrMsg("");
   };
 
   const [login, { isLoading }] = useLoginMutation();
@@ -67,6 +69,7 @@ export default function Login() {
             value={credentials.email}
             onChange={handleChange}
             className="border-2 border-gray-300 p-2 rounded-lg focus:outline-none focus:border-blue-400"
+            required
           />
 
           <input
@@ -76,12 +79,10 @@ export default function Login() {
             value={credentials.password}
             onChange={handleChange}
             className="border-2 border-gray-300 p-2 rounded-lg focus:outline-none focus:border-blue-400"
+            required
           />
 
-          <p
-            className={errMsg ? "text-red-500" : "invisible"}
-            aria-live="assertive"
-          >
+          <p className={errMsg ? "text-red-500 text-center" : "invisible"}>
             {errMsg}
           </p>
           <button
