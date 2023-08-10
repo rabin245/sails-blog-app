@@ -14,8 +14,13 @@ export const getBlogById = createAsyncThunk("blog/getBlogById", async (id) => {
 export const createBlog = createAsyncThunk(
   "blog/createBlog",
   async (newBlog) => {
-    const response = await axios.post("/api/posts", newBlog);
-    return response.data;
+    try {
+      const response = await axios.post("/api/posts", newBlog);
+      return response.data;
+    } catch (err) {
+      console.log(err);
+      throw err;
+    }
   },
 );
 
@@ -137,7 +142,7 @@ const blogSlice = createSlice({
       .addCase(createBlog.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isError = false;
-        state.blogs.push(action.payload);
+        state.blogs.push(action.payload.post);
       })
       .addCase(createBlog.rejected, (state, action) => {
         state.isLoading = false;
