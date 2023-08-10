@@ -22,14 +22,20 @@ export default function Chatbody({ io }) {
       console.log("connected");
     });
 
-    io.socket.on(`chat`, (data) => {
+    const handlerFunction = (data) => {
       if (
         (data.sender.id === user.id && data.receiver.id == id) ||
         (data.sender.id == id && data.receiver.id === user.id)
       ) {
         setChats((prev) => [...prev, data]);
       }
-    });
+    };
+
+    io.socket.on(`chat`, handlerFunction);
+
+    return () => {
+      io.socket.off(`chat`, handlerFunction);
+    };
   }, []);
 
   useEffect(() => {
