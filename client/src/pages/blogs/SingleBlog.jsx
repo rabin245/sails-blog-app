@@ -18,17 +18,56 @@ import {
   selectCurrentBlog,
   selectError,
   selectIsCurrentBlogLiked,
+  selectNoOfLikes,
   selectIsError,
   selectIsLoading,
   unlikePost,
+  addBlog,
+  increaseLikes,
+  decreaseLikes,
 } from "../../app/services/blog/blogSlice";
+import { joinSingleRoom, leaveSingleRoom } from "../../utils/blogs";
 
-export default function SingleBlog() {
+export default function SingleBlog({ io }) {
+  const { id } = useParams();
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    joinSingleRoom(io, id).then((data) => {
+      console.log("Joined single room");
+      console.log(data);
+    });
+
+    const postLikedHandlerFunction = (data) => {
+      console.log("Post liked");
+      console.log(data);
+      dispatch(increaseLikes());
+    };
+
+    io.socket.on("post-liked", postLikedHandlerFunction);
+
+    const postUnlikeHandlerFunction = (data) => {
+      console.log("Post unliked");
+      console.log(data);
+      dispatch(decreaseLikes());
+    };
+
+    io.socket.on("post-unliked", postUnlikeHandlerFunction);
+
+    return () => {
+      leaveSingleRoom(io, id).then((data) => {
+        console.log("Left single room");
+        console.log(data);
+      });
+
+      io.socket.off("post-liked", postLikedHandlerFunction);
+
+      io.socket.off("post-unliked", postUnlikeHandlerFunction);
+    };
+  }, []);
+
   const [isCommentBarOpen, setIsCommentBarOpen] = useState(false);
 
-  const { id } = useParams();
-
-  const dispatch = useDispatch();
   const user = useSelector(selectUser);
 
   useEffect(() => {
@@ -39,6 +78,7 @@ export default function SingleBlog() {
   const isLoading = useSelector(selectIsLoading);
   const isError = useSelector(selectIsError);
   const error = useSelector(selectError);
+  const noOfLikes = useSelector(selectNoOfLikes);
   const isCurrentBlogLiked = useSelector(selectIsCurrentBlogLiked);
 
   const blog = useMemo(() => {
@@ -56,7 +96,9 @@ export default function SingleBlog() {
     }
   }, [currentBlog]);
 
-  const noOfPostLikers = currentBlog?.likers?.length || 0;
+  const noOfPostLikers = useMemo(() => {
+    return noOfLikes;
+  }, [noOfLikes]);
 
   const onCommentSubmit = (message) => {
     dispatch(commentOnPost({ postId: id, content: message }));
@@ -146,7 +188,7 @@ export function LikesAndCommentsSection({
   const navigate = useNavigate();
 
   const [isPostLiked, setIsPostLiked] = useState(isLiked || false);
-  const [noOfPostLikers, setNoOfLikers] = useState(noOfLikers || 0);
+  // const [noOfPostLikers, setNoOfLikers] = useState(noOfLikers || 0);
 
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
@@ -160,11 +202,11 @@ export function LikesAndCommentsSection({
 
     if (isPostLiked) {
       console.log("unliking");
-      setNoOfLikers((prev) => prev - 1);
+      // setNoOfLikers((prev) => prev - 1);
       handlePostUnlike();
     } else {
       console.log("liking post");
-      setNoOfLikers((prev) => prev + 1);
+      // setNoOfLikers((prev) => prev + 1);
       handlePostLike();
     }
   };
@@ -198,7 +240,7 @@ export function LikesAndCommentsSection({
   return (
     <div>
       <div className="flex p-2 border-y border-gray-600 mb-10 relative gap-2 items-center">
-        <PostInteractionIcons value={noOfPostLikers}>
+        <PostInteractionIcons value={noOfLikers}>
           {isPostLiked ? (
             <AiFillHeart
               className="text-2xl cursor-pointer"
