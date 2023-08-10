@@ -70,6 +70,10 @@ export default function SingleBlog() {
     dispatch(unlikePost(id));
   };
 
+  const toggleCommentBar = () => {
+    setIsCommentBarOpen(!isCommentBarOpen);
+  };
+
   const layout = (content) => {
     return (
       <div className="bg-slate-900 flex min-h-[calc(100vh-3.5rem)] max-h-fit relative">
@@ -81,7 +85,7 @@ export default function SingleBlog() {
         <ChatIcon />
         {user && (
           <CommentBar
-            setIsCommentBarOpen={setIsCommentBarOpen}
+            toggleCommentBar={toggleCommentBar}
             isCommentBarOpen={isCommentBarOpen}
             postComments={postComments}
             user={user}
@@ -101,41 +105,37 @@ export default function SingleBlog() {
       <div className="text-red-500">
         <h1 className="text-xl text-center">Error</h1>
         <p>{error.message}</p>
-      </div>,
+      </div>
     );
   }
 
-  return (
-    layout(
-      <div className=" bg-slate-800 py-5 px-10 rounded-xl shadow-2xl w-full">
-        <h1 className="text-4xl font-bold mb-5">{blog?.title}</h1>
+  return layout(
+    <div className=" bg-slate-800 py-5 px-10 rounded-xl shadow-2xl w-full">
+      <h1 className="text-4xl font-bold mb-5">{blog?.title}</h1>
 
-        <BlogMetaData blog={blog} user={user} />
+      <BlogMetaData blog={blog} user={user} />
 
-        <LikesAndCommentsSection
-          setIsCommentBarOpen={setIsCommentBarOpen}
-          isCommentBarOpen={isCommentBarOpen}
-          noOfLikers={noOfPostLikers}
-          comments={postComments}
-          user={user}
-          isLiked={isCurrentBlogLiked}
-          handlePostLike={handlePostLike}
-          handlePostUnlike={handlePostUnlike}
-        />
+      <LikesAndCommentsSection
+        toggleCommentBar={toggleCommentBar}
+        isCommentBarOpen={isCommentBarOpen}
+        noOfLikers={noOfPostLikers}
+        comments={postComments}
+        user={user}
+        isLiked={isCurrentBlogLiked}
+        handlePostLike={handlePostLike}
+        handlePostUnlike={handlePostUnlike}
+      />
 
-        <div
-          className="pe-2 text-xl max-w-[80vw]  break-words"
-          dangerouslySetInnerHTML={blog?.content}
-        >
-        </div>
-      </div>,
-    )
+      <div
+        className="pe-2 text-xl max-w-[80vw]  break-words"
+        dangerouslySetInnerHTML={blog?.content}
+      ></div>
+    </div>
   );
 }
 
 export function LikesAndCommentsSection({
-  isCommentBarOpen,
-  setIsCommentBarOpen,
+  toggleCommentBar,
   noOfLikers,
   isLiked,
   comments,
@@ -175,7 +175,7 @@ export function LikesAndCommentsSection({
       return;
     }
 
-    setIsCommentBarOpen(!isCommentBarOpen);
+    toggleCommentBar();
   };
 
   const toggleShare = () => {
@@ -199,20 +199,18 @@ export function LikesAndCommentsSection({
     <div>
       <div className="flex p-2 border-y border-gray-600 mb-10 relative gap-2 items-center">
         <PostInteractionIcons value={noOfPostLikers}>
-          {isPostLiked
-            ? (
-              <AiFillHeart
-                className="text-2xl cursor-pointer"
-                onClick={toggleLike}
-                fill="red"
-              />
-            )
-            : (
-              <AiOutlineHeart
-                className="text-2xl cursor-pointer"
-                onClick={toggleLike}
-              />
-            )}
+          {isPostLiked ? (
+            <AiFillHeart
+              className="text-2xl cursor-pointer"
+              onClick={toggleLike}
+              fill="red"
+            />
+          ) : (
+            <AiOutlineHeart
+              className="text-2xl cursor-pointer"
+              onClick={toggleLike}
+            />
+          )}
         </PostInteractionIcons>
         <PostInteractionIcons value={comments?.length}>
           <FaRegComment
@@ -250,16 +248,14 @@ export function BlogMetaData({ blog, user }) {
         <div className="flex text-sm  items-center gap-2">
           <span>By {blog?.author?.fullName}</span>
           {user &&
-            (user.id != blog?.author?.id
-              ? (
-                <>
-                  <span>·</span>
-                  <Link to={`/chat/${blog?.author?.id}`}>
-                    <span className="text-blue-600">Message</span>
-                  </Link>
-                </>
-              )
-              : null)}
+            (user.id != blog?.author?.id ? (
+              <>
+                <span>·</span>
+                <Link to={`/chat/${blog?.author?.id}`}>
+                  <span className="text-blue-600">Message</span>
+                </Link>
+              </>
+            ) : null)}
         </div>
         <span className="text-sm text-gray-500 italic">
           {new Date(blog?.createdAt).toLocaleString()}

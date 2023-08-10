@@ -3,7 +3,7 @@ import CommentCard from "../../component/blog/CommentCard";
 import { useState } from "react";
 
 export default function CommentBar({
-  setIsCommentBarOpen,
+  toggleCommentBar,
   isCommentBarOpen,
   postComments,
   user,
@@ -22,13 +22,10 @@ export default function CommentBar({
 
         <AiOutlineClose
           className="text-2xl font-medium cursor-pointer"
-          onClick={() => setIsCommentBarOpen(!isCommentBarOpen)}
+          onClick={() => toggleCommentBar()}
         />
       </div>
-      <WriteComment
-        name={user.fullName}
-        onCommentSubmit={onCommentSubmit}
-      />
+      <WriteComment name={user.fullName} onCommentSubmit={onCommentSubmit} />
       <div className="my-10">
         <h1 className="text-md font-semibold pb-4 border-b border-gray-500">
           Most Relevant
