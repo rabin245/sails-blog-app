@@ -1,19 +1,21 @@
 import ReactDOM from "react-dom/client";
-import App from "./App.jsx";
+import App from "./App";
 import "./index.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import Login from "./pages/auth/Login.jsx";
-import Register from "./pages/auth/Register.jsx";
-import BlogForm from "./pages/blogs/WriteBlog.jsx";
-import Blogs from "./pages/blogs/Blogs.jsx";
-import Chat from "./pages/chat/Chat.jsx";
+import Login from "./pages/auth/Login";
+import Register from "./pages/auth/Register";
+import BlogForm from "./pages/blogs/WriteBlog";
+import Blogs from "./pages/blogs/Blogs";
+import Chat from "./pages/chat/Chat";
 import { store } from "./app/store";
 import { Provider } from "react-redux";
-import SingleBlog from "./pages/blogs/SingleBlog.jsx";
-import Chatbody from "./component/chat/ChatBody.jsx";
-import ChatbodyWithMessage from "./component/chat/ChatbodyWithMessage.jsx";
-import { connectToSocket } from "./utils/socketConnection.js";
-import RequireAuth from "./component/RequireAuth.jsx";
+import SingleBlog from "./pages/blogs/SingleBlog";
+import Chatbody from "./component/chat/ChatBody";
+import ChatbodyWithMessage from "./component/chat/ChatbodyWithMessage";
+import { connectToSocket } from "./utils/socketConnection";
+import RequireAuth from "./component/RequireAuth";
+import ConfirmEmail from "./pages/auth/ConfirmEmail";
+import RegisterSuccess from "./pages/auth/RegisterSuccess";
 
 const io = connectToSocket();
 
@@ -64,12 +66,20 @@ const router = createBrowserRouter([
     path: "/signup",
     element: <Register />,
   },
+  {
+    path: "/signup/success",
+    element: <RegisterSuccess />,
+  },
+  {
+    path: "/confirm",
+    element: <ConfirmEmail />,
+  },
 ]);
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   // <React.StrictMode>
   <Provider store={store}>
     <RouterProvider router={router} fallbackElement={<h1>Loading ...</h1>} />
-  </Provider>
+  </Provider>,
   // </React.StrictMode>
 );

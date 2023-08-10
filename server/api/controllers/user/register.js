@@ -27,7 +27,7 @@ module.exports = {
       description: "New user account was created successfully",
     },
     emailAlreadyInUse: {
-      statusCode: 400,
+      statusCode: 409,
       description: "The provided email address is already in use",
     },
     error: {
@@ -51,7 +51,7 @@ module.exports = {
       }).fetch();
 
       const confirmLink =
-        `${sails.config.custom.baseUrl}/user/confirm?token=${token}`;
+        `${sails.config.custom.baseUrl}/confirm?token=${token}`;
 
       const email = {
         to: newUser.email,
