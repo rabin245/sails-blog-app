@@ -1,19 +1,23 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { EditorState, convertToRaw } from "draft-js";
+import { convertToRaw, EditorState } from "draft-js";
 import { Editor } from "react-draft-wysiwyg";
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
-import { useCreateBlogMutation } from "../../app/services/blog/blogApiService";
+import { createBlog, selectIsLoading } from "../../app/services/blog/blogSlice";
+import { useDispatch, useSelector } from "react-redux";
 
 export default function Blog() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const isLoading = useSelector(selectIsLoading);
 
   const [blog, setBlog] = useState({
     title: "",
     content: "",
   });
 
-  const [errMsg, setErrMsg] = useState("");
+  const [error, setError] = useState("");
 
   const [editorState, setEditorState] = useState(() =>
     EditorState.createEmpty()
@@ -23,30 +27,29 @@ export default function Blog() {
     setBlog({ ...blog, [e.target.name]: e.target.value });
   };
 
-  const [createBlog, { isLoading }] = useCreateBlogMutation();
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
       const contentState = editorState.getCurrentContent();
+
+      if (contentState.getPlainText().trim().length === 0) {
+        return setError("Content cannot be empty");
+      }
+
       const contentStateJSON = JSON.stringify(convertToRaw(contentState));
 
-      const { message, post } = await createBlog({
+      const res = await dispatch(createBlog({
         title: blog.title,
         content: contentStateJSON,
-      }).unwrap();
+      }));
 
-      console.log(message, post);
-
-      navigate("/");
+      if (!res.error) {
+        navigate("/");
+      }
     } catch (err) {
       console.log(err);
-      if (err.status === 400) {
-        setErrMsg("Missing Title or Content");
-      } else {
-        setErrMsg("Create Failed");
-      }
+      setError(err.message);
     }
   };
 
@@ -63,6 +66,7 @@ export default function Blog() {
             value={blog.title}
             onChange={handleChange}
             className="border-2 border-gray-300 p-2 rounded-lg focus:outline-none focus:border-blue-400"
+            required
           />
 
           <Editor
@@ -89,7 +93,7 @@ export default function Blog() {
             }}
           />
 
-          {errMsg ? <p className="text-red-500">{errMsg}</p> : null}
+          {error ? <p className="text-red-500 text-center">{error}</p> : null}
           <button
             type="submit"
             className="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-400"

@@ -1,16 +1,23 @@
 import { useEffect } from "react";
 import BlogCard from "../../component/blog/BlogCard";
-import { useGetBlogsQuery } from "../../app/services/blog/blogApiService";
 import { useDispatch, useSelector } from "react-redux";
-import { selectBlogs } from "../../app/services/blog/blogSlice";
-import { addBlog, setBlogs } from "../../app/services/blog/blogSlice";
+import {
+  addBlog,
+  getBlogs,
+  selectBlogs,
+  selectError,
+  selectIsError,
+  selectIsLoading,
+} from "../../app/services/blog/blogSlice";
 import ChatIcon from "../../component/chat/ChatIcon";
 
 export default function Blogs({ io }) {
-  const { data, error, isLoading } = useGetBlogsQuery();
   const dispatch = useDispatch();
 
-  const blogPosts = useSelector(selectBlogs);
+  const blogs = useSelector(selectBlogs);
+  const isLoading = useSelector(selectIsLoading);
+  const isError = useSelector(selectIsError);
+  const error = useSelector(selectError);
 
   useEffect(() => {
     io.socket.get("/join-blog", function (body, response) {
@@ -24,6 +31,8 @@ export default function Blogs({ io }) {
       dispatch(addBlog(post));
     });
 
+    dispatch(getBlogs());
+
     return () => {
       io.socket.get("/leave-blog", function (body, response) {
         console.log("\n\nSails responded with: ", body);
@@ -33,35 +42,38 @@ export default function Blogs({ io }) {
     };
   }, []);
 
-  useEffect(() => {
-    if (data) {
-      dispatch(setBlogs(data.posts));
-    }
-  }, [data]);
-
-  if (isLoading) return <div>Loading...</div>;
-
-  if (error) {
+  const layout = (content) => {
     return (
-      <div>
-        {error.originalStatus} {error.data}
-      </div>
+      <>
+        <div className="bg-slate-900 max-h-fit min-h-[calc(100vh-3.5rem)]">
+          <div className="flex flex-col items-center pt-5 h-full w-full">
+            <h1 className="text-4xl font-bold mb-4">Blogs</h1>
+            {content}
+          </div>
+          <ChatIcon />
+        </div>
+      </>
+    );
+  };
+
+  if (isLoading) {
+    return layout(<div>Loading...</div>);
+  }
+
+  if (isError) {
+    return layout(
+      <div className="text-red-500">
+        <h1 className="text-xl text-center">Error</h1>
+        <p>{error.message}</p>
+      </div>,
     );
   }
 
-  const reversedBlogs = blogPosts.slice().reverse();
+  const content = (blogs && blogs.length > 0)
+    ? (blogs.slice().reverse().map((blog, index) => (
+      <BlogCard key={index} blog={blog} />
+    )))
+    : <div className="text-2xl font-bold">No blogs yet</div>;
 
-  return (
-    <>
-      <div className="bg-slate-900 max-h-fit min-h-[calc(100vh-3.5rem)]">
-        <div className="flex flex-col items-center pt-5 h-full w-full">
-          <h1 className="text-4xl font-bold mb-4">Blogs</h1>
-          {reversedBlogs.map((blog, index) => (
-            <BlogCard key={index} blog={blog} />
-          ))}
-        </div>
-        <ChatIcon />
-      </div>
-    </>
-  );
+  return layout(content);
 }

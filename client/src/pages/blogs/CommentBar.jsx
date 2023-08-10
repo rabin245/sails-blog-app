@@ -1,22 +1,15 @@
 import { AiOutlineClose } from "react-icons/ai";
 import CommentCard from "../../component/blog/CommentCard";
-import { useEffect, useState } from "react";
-import { postComment } from "../../utils/likeAndComment";
+import { useState } from "react";
 
 export default function CommentBar({
-  setIsCommentBarOpen,
+  toggleCommentBar,
   isCommentBarOpen,
-  postId,
-  comments,
-  allComments,
-  setAllComments,
+  postComments,
   user,
+  onCommentSubmit,
 }) {
-  useEffect(() => {
-    setAllComments(comments);
-  }, [comments]);
-
-  console.log(allComments);
+  console.log(postComments);
 
   return (
     <div
@@ -24,51 +17,43 @@ export default function CommentBar({
         isCommentBarOpen ? "  opacity-100 right-0" : " opacity-0 right-[-100%] "
       } px-5 fixed top-0 bottom-0  bg-slate-800 shadow-lg w-96 z-30 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-500 transition-all duration-300 pt-20 `}
     >
-      {console.log(comments)}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl">Responses</h1>
 
         <AiOutlineClose
           className="text-2xl font-medium cursor-pointer"
-          onClick={() => setIsCommentBarOpen(!isCommentBarOpen)}
+          onClick={() => toggleCommentBar()}
         />
       </div>
-      <WriteComment
-        name={user.fullName}
-        postId={postId}
-        setComments={setAllComments}
-      />
+      <WriteComment name={user.fullName} onCommentSubmit={onCommentSubmit} />
       <div className="my-10">
         <h1 className="text-md font-semibold pb-4 border-b border-gray-500">
           Most Relevant
         </h1>
       </div>
-      {allComments
-        .slice()
-        .reverse()
-        .map((comment, index) => (
-          <CommentCard
-            key={index}
-            name={comment.user.fullName}
-            message={comment.content}
-            date={new Date(comment.createdAt).toLocaleDateString()}
-          />
-        ))}
+      {postComments &&
+        postComments
+          .slice()
+          .reverse()
+          .map((comment, index) => (
+            <CommentCard
+              key={index}
+              name={comment.user.fullName}
+              message={comment.content}
+              date={new Date(comment.createdAt).toLocaleDateString()}
+            />
+          ))}
     </div>
   );
 }
 
-export function WriteComment({ name, postId, setComments }) {
+export function WriteComment({ name, onCommentSubmit }) {
   const [message, setMessage] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (message.length > 0) {
-      const res = await postComment(message, postId);
-      console.log(res);
-      if ((res.status = 200)) {
-        setComments((prev) => [...prev, res.data.data]);
-      }
+      const res = await onCommentSubmit(message);
       setMessage("");
     }
   };
