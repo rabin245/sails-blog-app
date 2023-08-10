@@ -148,7 +148,7 @@ export function LikesAndCommentsSection({
   const [isPostLiked, setIsPostLiked] = useState(isLiked || false);
   const [noOfPostLikers, setNoOfLikers] = useState(noOfLikers || 0);
 
-  const [showShare, setShowShare] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   const toggleLike = async () => {
     if (!user) {
@@ -179,7 +179,7 @@ export function LikesAndCommentsSection({
   };
 
   const toggleShare = () => {
-    setShowShare(!showShare);
+    setIsShareModalOpen(!isShareModalOpen);
   };
 
   const copyToClipboard = () => {
@@ -224,13 +224,11 @@ export function LikesAndCommentsSection({
             onClick={toggleShare}
           />
         </PostInteractionIcons>
-      </div>
-      <div>
         <div
           onClick={copyToClipboard}
           className={`${
-            showShare ? "opacity-100" : "opacity-0"
-          } cursor-pointer flex gap-2 items-center justify-center mb-10 absolute right-40 top-56  w-36 py-2  bg-slate-700 shadow-md text-center`}
+            isShareModalOpen ? "opacity-100" : "opacity-0"
+          } cursor-pointer flex gap-2 items-center justify-center mb-10 absolute right-2 top-10  w-36 py-2  bg-slate-700 shadow-md text-center`}
         >
           <FiLink className="text-2xl" />
           <span>Copy Link</span>
