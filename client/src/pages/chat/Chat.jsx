@@ -1,7 +1,7 @@
 import { Outlet } from "react-router";
 import ChatSidebar from "../../component/chat/ChatSidebar";
 import { useEffect } from "react";
-import { joinRoom } from "../../utils/chat";
+import { joinRoom, leaveRoom } from "../../utils/chat";
 import { useSelector } from "react-redux";
 import { selectUser } from "../../app/services/auth/authSlice";
 
@@ -12,6 +12,12 @@ export default function Chat({ io }) {
     joinRoom(io, user.id).then((data) => {
       console.log(data);
     });
+
+    return () => {
+      leaveRoom(io, user.id).then((data) => {
+        console.log(data);
+      });
+    };
   }, []);
 
   return (

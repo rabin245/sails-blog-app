@@ -13,7 +13,9 @@ module.exports = {
     const userId = this.req.query.userId;
 
     sails.sockets.join(this.req, `user-${userId}`, (err) => {
-      console.log("Joined Room???");
+      console.log(
+        "Socket joined room: " + sails.sockets.getId(this.req) + " to chat-room"
+      );
       if (err) {
         console.log(err);
       }

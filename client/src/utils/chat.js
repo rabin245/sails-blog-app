@@ -62,3 +62,14 @@ export const joinRoom = async (io, userId) => {
     });
   });
 };
+
+export const leaveRoom = async (io, userId) => {
+  return new Promise((resolve) => {
+    io.socket.get(`/chat/leave-room/?userId=${userId}`, (body, JWR) => {
+      console.log("Sails responded with: ", body);
+      console.log("with headers: ", JWR.headers);
+      console.log("and with status code: ", JWR.statusCode);
+      resolve(body);
+    });
+  });
+};
