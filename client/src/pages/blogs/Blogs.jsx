@@ -10,6 +10,7 @@ import {
   selectIsLoading,
 } from "../../app/services/blog/blogSlice";
 import ChatIcon from "../../component/chat/ChatIcon";
+import { joinRoom, leaveRoom } from "../../utils/blogs";
 
 export default function Blogs({ io }) {
   const dispatch = useDispatch();
@@ -20,25 +21,25 @@ export default function Blogs({ io }) {
   const error = useSelector(selectError);
 
   useEffect(() => {
-    io.socket.get("/join-blog", function (body, response) {
-      console.log("\n\nSails responded with: ", body);
-      console.log("with headers: ", response.headers);
-      console.log("and with status code: ", response.statusCode, "\n\n");
+    joinRoom(io).then((data) => {
+      console.log(data);
     });
 
-    io.socket.on("new-post", function ({ post }) {
+    const handlerFunction = ({ post }) => {
       console.log("new post", post);
       dispatch(addBlog(post));
-    });
+    };
+
+    io.socket.on("new-post", handlerFunction);
 
     dispatch(getBlogs());
 
     return () => {
-      io.socket.get("/leave-blog", function (body, response) {
-        console.log("\n\nSails responded with: ", body);
-        console.log("with headers: ", response.headers);
-        console.log("and with status code: ", response.statusCode, "\n\n");
+      leaveRoom(io).then((data) => {
+        console.log(data);
       });
+
+      io.socket.off("new-post", handlerFunction);
     };
   }, []);
 
@@ -65,15 +66,19 @@ export default function Blogs({ io }) {
       <div className="text-red-500">
         <h1 className="text-xl text-center">Error</h1>
         <p>{error.message}</p>
-      </div>,
+      </div>
     );
   }
 
-  const content = (blogs && blogs.length > 0)
-    ? (blogs.slice().reverse().map((blog, index) => (
-      <BlogCard key={index} blog={blog} />
-    )))
-    : <div className="text-2xl font-bold">No blogs yet</div>;
+  const content =
+    blogs && blogs.length > 0 ? (
+      blogs
+        .slice()
+        .reverse()
+        .map((blog, index) => <BlogCard key={index} blog={blog} />)
+    ) : (
+      <div className="text-2xl font-bold">No blogs yet</div>
+    );
 
   return layout(content);
 }

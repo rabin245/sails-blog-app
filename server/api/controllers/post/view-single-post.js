@@ -47,7 +47,7 @@ module.exports = {
           if (
             cachedPost.likers.some((liker) => {
               console.log(liker.id);
-              return liker.id == userId;
+              return liker.id === userId;
             })
           ) {
             isLiked = true;

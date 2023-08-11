@@ -52,6 +52,16 @@ module.exports = {
 
       await sails.helpers.removeCache(`cached_post_${postId}`);
 
+      sails.sockets.broadcast(
+        `blog-room-${postId}`,
+        "comment-created",
+        {
+          message: "Comment created",
+          comment: populatedComment,
+        },
+        this.req
+      );
+
       return exits.success({
         message: "Comment created successfully.",
         data: populatedComment,
