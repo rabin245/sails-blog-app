@@ -33,7 +33,7 @@ module.exports.policies = {
   // session not working with socket virtual requests
   // "chat/get-conversation": "is-logged-in",
   // "chat/get-person-contacts": "is-logged-in",
-  // "chat/send": "is-logged-in",
+  "chat/send": "is-logged-in",
   // "chat/join-room": "is-logged-in",
   "user/get-user": "is-logged-in",
 };

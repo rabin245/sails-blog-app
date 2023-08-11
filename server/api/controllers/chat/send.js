@@ -4,10 +4,6 @@ module.exports = {
   description: "Send chat.",
 
   inputs: {
-    senderId: {
-      type: "number",
-      required: true,
-    },
     receiverId: {
       type: "number",
       required: true,
@@ -29,7 +25,7 @@ module.exports = {
 
   fn: async function (inputs, exits) {
     try {
-      const sender = inputs.senderId;
+      const sender = this.req.user.id;
       const receiver = inputs.receiverId;
       const message = inputs.message;
 
@@ -44,8 +40,6 @@ module.exports = {
       })
         .populate("sender")
         .populate("receiver");
-
-      console.log(chat, populatedChat);
 
       if (chat) {
         sails.sockets.broadcast(`user-${receiver}`, "chat", {

@@ -15,31 +15,12 @@ export const getChat = async (io, receiverId, userId) => {
   });
 };
 
-export const postChat = async (io, receiverId, senderId, message) => {
-  console.log("posting chat\n\n\n\n");
-  // return new Promise((resolve) => {
-  //   io.socket.post(
-  //     `/chat/send`,
-  //     {
-  //       receiverId,
-  //       message,
-  //       senderId,
-  //     },
-  //     (body, JWR) => {
-  //       console.log("Sails responded with: ", body);
-  //       console.log("with headers: ", JWR.headers);
-  //       console.log("and with status code: ", JWR.statusCode);
-  //       resolve(body);
-  //     }
-  //   );
-  // });
-
-  const response = axios.post(
+export const postChat = async (receiverId, message) => {
+  const response = await axios.post(
     `/api/chat/send`,
     {
       receiverId,
       message,
-      senderId,
     },
     {
       withCredentials: true,

@@ -58,7 +58,7 @@ export default function Chatbody({ io }) {
             </div>
           ))}
         </div>
-        <MessageSendingForm io={io} id={id} user={user} />
+        <MessageSendingForm id={id} />
       </div>
     </div>
   );
@@ -117,7 +117,7 @@ export const SentMessage = ({ chat }) => {
   );
 };
 
-export const MessageSendingForm = ({ io, id, user }) => {
+export const MessageSendingForm = ({ id }) => {
   const [messsage, setMesssage] = useState("");
 
   const handleChange = (e) => {
@@ -126,9 +126,9 @@ export const MessageSendingForm = ({ io, id, user }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    postChat(io, id, user.id, messsage).then((data) => {
-      console.log(data);
-    });
+    const res = await postChat(id, messsage);
+
+    console.log(res);
 
     setMesssage("");
   };
