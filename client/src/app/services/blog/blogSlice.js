@@ -74,15 +74,16 @@ export const commentOnPost = createAsyncThunk(
     const response = await axios.post(`/api/posts/${postId}/comment`, {
       content,
     });
-    const newComment = response.data.data;
-    const { currentBlog } = getState().blog;
-    const updatedComments = [...currentBlog.comments, newComment];
-    const updatedCurrentBlog = {
-      ...currentBlog,
-      comments: updatedComments,
-    };
+    console.log(response);
+    // const newComment = response.data.data;
+    // const { currentBlog } = getState().blog;
+    // const updatedComments = [...currentBlog.comments, newComment];
+    // const updatedCurrentBlog = {
+    //   ...currentBlog,
+    //   comments: updatedComments,
+    // };
 
-    dispatch(blogSlice.actions.updateCurrentBlog(updatedCurrentBlog));
+    // dispatch(blogSlice.actions.updateCurrentBlog(updatedCurrentBlog));
   }
 );
 
@@ -109,6 +110,9 @@ const blogSlice = createSlice({
     },
     decreaseLikes: (state) => {
       state.noOfLikes -= 1;
+    },
+    updateComments: (state, action) => {
+      state.currentBlog.comments.push(action.payload);
     },
   },
   extraReducers: (builder) => {
@@ -161,7 +165,13 @@ const blogSlice = createSlice({
   },
 });
 
-export const { addBlog, increaseLikes, decreaseLikes } = blogSlice.actions;
+export const {
+  addBlog,
+  increaseLikes,
+  decreaseLikes,
+  updateCurrentBlog,
+  updateComments,
+} = blogSlice.actions;
 
 export default blogSlice.reducer;
 

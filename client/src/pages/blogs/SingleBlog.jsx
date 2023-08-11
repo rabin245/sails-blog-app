@@ -25,6 +25,7 @@ import {
   addBlog,
   increaseLikes,
   decreaseLikes,
+  updateComments,
 } from "../../app/services/blog/blogSlice";
 import { joinSingleRoom, leaveSingleRoom } from "../../utils/blogs";
 
@@ -54,6 +55,14 @@ export default function SingleBlog({ io }) {
 
     io.socket.on("post-unliked", postUnlikeHandlerFunction);
 
+    const commentCreatedHandlerFunction = (data) => {
+      console.log("Comment created");
+      console.log(data);
+      dispatch(updateComments(data.comment));
+    };
+
+    io.socket.on("comment-created", commentCreatedHandlerFunction);
+
     return () => {
       leaveSingleRoom(io, id).then((data) => {
         console.log("Left single room");
@@ -63,6 +72,8 @@ export default function SingleBlog({ io }) {
       io.socket.off("post-liked", postLikedHandlerFunction);
 
       io.socket.off("post-unliked", postUnlikeHandlerFunction);
+
+      io.socket.off("comment-created", commentCreatedHandlerFunction);
     };
   }, []);
 
