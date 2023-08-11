@@ -10,7 +10,9 @@ const ConfirmEmail = () => {
   const [errMsg, setErrMsg] = useState("");
 
   if (!token) {
-    setErrMsg("Invalid Token");
+    navigate("/login", {
+      replace: true,
+    });
   }
 
   useEffect(() => {
@@ -24,7 +26,7 @@ const ConfirmEmail = () => {
         });
       } catch (error) {
         console.log(error);
-        setErrMsg("Invalid Token");
+        setErrMsg("Invalid or Expired Token");
       }
     };
     confirmEmail();

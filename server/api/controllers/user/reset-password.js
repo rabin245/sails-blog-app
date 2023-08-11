@@ -60,7 +60,6 @@ module.exports = {
     return exits.success({
       message: `Password reset successful. ${user.email} has been logged in`,
       data: user,
-      token: authToken,
     });
   },
 };

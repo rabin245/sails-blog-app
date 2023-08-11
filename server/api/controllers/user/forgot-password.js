@@ -33,7 +33,7 @@ module.exports = {
     });
 
     const recoveryLink =
-      `${sails.config.custom.baseUrl}/user/reset-password?token=${token}`;
+      `${sails.config.custom.baseUrl}/reset-password?token=${token}`;
 
     const emailOptions = {
       to: user.email,

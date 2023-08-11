@@ -99,6 +99,17 @@ export default function Login() {
             Signup now
           </Link>
         </p>
+
+        <p className="mt-2">
+          Forgot your password?{" "}
+          <Link
+            to="/forgot-password"
+            className="text-blue-600 hover:underline"
+            replace
+          >
+            Reset password
+          </Link>
+        </p>
       </div>
     </div>
   );

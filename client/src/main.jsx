@@ -16,6 +16,8 @@ import { connectToSocket } from "./utils/socketConnection";
 import RequireAuth from "./component/RequireAuth";
 import ConfirmEmail from "./pages/auth/ConfirmEmail";
 import RegisterSuccess from "./pages/auth/RegisterSuccess";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
 
 const io = connectToSocket();
 
@@ -73,6 +75,14 @@ const router = createBrowserRouter([
   {
     path: "/confirm",
     element: <ConfirmEmail />,
+  },
+  {
+    path: "/forgot-password",
+    element: <ForgotPassword />,
+  },
+  {
+    path: "/reset-password",
+    element: <ResetPassword />,
   },
 ]);
 
