@@ -1,18 +1,16 @@
 import axios from "axios";
 
-export const getChat = async (io, receiverId, userId) => {
-  console.log("getting chat\n\n\n\n");
-  return new Promise((resolve) => {
-    io.socket.get(
-      `/chat/conversations/?senderId=${userId}&receiverId=${receiverId}`,
-      (body, JWR) => {
-        console.log("Sails responded with: ", body);
-        console.log("with headers: ", JWR.headers);
-        console.log("and with status code: ", JWR.statusCode);
-        resolve(body);
-      },
-    );
-  });
+export const getChat = async (receiverId) => {
+  const response = await axios.get(
+    `/api/chat/conversations?receiverId=${receiverId}`,
+    {
+      withCredentials: true,
+    },
+  );
+  if (response.status === 200) {
+    console.log("response.data", response.data);
+    return response.data;
+  } else return null;
 };
 
 export const postChat = async (receiverId, message) => {
