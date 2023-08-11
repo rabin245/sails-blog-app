@@ -10,7 +10,7 @@ export const getChat = async (io, receiverId, userId) => {
         console.log("with headers: ", JWR.headers);
         console.log("and with status code: ", JWR.statusCode);
         resolve(body);
-      }
+      },
     );
   });
 };
@@ -43,7 +43,7 @@ export const postChat = async (io, receiverId, senderId, message) => {
     },
     {
       withCredentials: true,
-    }
+    },
   );
   if (response.status === 200) {
     console.log("response.data", response.data);
@@ -51,25 +51,39 @@ export const postChat = async (io, receiverId, senderId, message) => {
   } else return null;
 };
 
-export const joinRoom = async (io, userId) => {
+export const joinRoom = async (io, token) => {
   console.log("joining room\n\n\n\n");
   return new Promise((resolve) => {
-    io.socket.get(`/chat/join-room/?userId=${userId}`, (body, JWR) => {
-      console.log("Sails responded with: ", body);
-      console.log("with headers: ", JWR.headers);
-      console.log("and with status code: ", JWR.statusCode);
-      resolve(body);
+    io.socket.request({
+      method: "get",
+      url: "/chat/join-room",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": token,
+      },
+    }, (resData, jwres) => {
+      console.log("resData", resData);
+      console.log("jwres", jwres);
+
+      resolve(resData);
     });
   });
 };
 
-export const leaveRoom = async (io, userId) => {
+export const leaveRoom = async (io, token) => {
   return new Promise((resolve) => {
-    io.socket.get(`/chat/leave-room/?userId=${userId}`, (body, JWR) => {
-      console.log("Sails responded with: ", body);
-      console.log("with headers: ", JWR.headers);
-      console.log("and with status code: ", JWR.statusCode);
-      resolve(body);
+    io.socket.request({
+      method: "get",
+      url: "/chat/leave-room",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": token,
+      },
+    }, (resData, jwres) => {
+      console.log("resData", resData);
+      console.log("jwres", jwres);
+
+      resolve(resData);
     });
   });
 };
