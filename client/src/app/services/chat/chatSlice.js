@@ -8,12 +8,7 @@ const getChats = createAsyncThunk("chatApi/getChats", async (id) => {
 });
 
 const markAsRead = createAsyncThunk("chatApi/markAsRead", async (id) => {
-  console.log("Mark as read test");
   const response = await axios.put(`/api/chat/mark-read/${id}`);
-  if (response.status === 200) {
-    updateContactedPerson({ contactId: id, count: 0 });
-  }
-  console.log(response);
   return response.data;
 });
 
@@ -59,13 +54,27 @@ const chatSlice = createSlice({
   },
   reducers: {
     updateContactedPerson: (state, action) => {
-      const { contactId, count } = action.payload;
-      const contactedPerson = state.contactedPerson.map((contact) => {
-        if (contact.contact.id == contactId) {
-          contact.count = count;
-        }
-        return contact;
-      });
+      const { contact, count } = action.payload;
+      const contactedPerson = [...state.contactedPerson]; // Create a shallow copy of the array
+
+      // console.log(
+      //   contactedPerson,
+      //   contact,
+      //   contactedPerson.findIndex((contactInfo) => {
+      //     contactInfo.contact.id == contact.id;
+      //   })
+      // );
+      const indexToUpdate = contactedPerson.findIndex(
+        (contactInfo) => contactInfo.contact.id == contact.id
+      );
+
+      console.log(indexToUpdate);
+
+      if (indexToUpdate !== -1) {
+        contactedPerson[indexToUpdate].count = count;
+      } else {
+        contactedPerson.push({ contact, count });
+      }
       state.contactedPerson = contactedPerson;
     },
   },
@@ -119,9 +128,23 @@ const chatSlice = createSlice({
         state.isLoading = true;
         state.isError = false;
       })
-      .addCase(markAsRead.fulfilled, (state) => {
+      .addCase(markAsRead.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isError = false;
+
+        // dispatch(updateContactedPerson({ contact: { id: sender }, count: 0 }));
+
+        const { sender } = action.payload;
+        const contactedPerson = [...state.contactedPerson]; // Create a shallow copy of the array
+
+        const indexToUpdate = contactedPerson.findIndex(
+          (contactInfo) => contactInfo.contact.id == sender
+        );
+
+        if (indexToUpdate !== -1) {
+          contactedPerson[indexToUpdate].count = 0;
+        }
+        state.contactedPerson = contactedPerson;
       })
       .addCase(markAsRead.rejected, (state) => {
         state.isLoading = false;

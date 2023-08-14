@@ -9,24 +9,28 @@ export default function Chat({ io }) {
   const token = useSelector(selectToken);
 
   useEffect(() => {
-    joinRoom(io, token).then((data) => {
-      console.log(data);
-    }).catch((err) => {
-      console.log(err);
-    });
-
-    return () => {
-      leaveRoom(io, token).then((data) => {
+    joinRoom(io, token)
+      .then((data) => {
         console.log(data);
-      }).catch((err) => {
+      })
+      .catch((err) => {
         console.log(err);
       });
+
+    return () => {
+      leaveRoom(io, token)
+        .then((data) => {
+          console.log(data);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
     };
   }, []);
 
   return (
     <div className="flex h-[calc(100vh-3.5rem)]">
-      <ChatSidebar />
+      <ChatSidebar io={io} />
       <Outlet />
     </div>
   );

@@ -1,12 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router";
 import { getChat, postChat } from "../../utils/chat";
-import { useSelector } from "react-redux/es/hooks/useSelector";
 import { selectUser } from "../../app/services/auth/authSlice";
 import { markAsRead } from "../../app/services/chat/chatSlice";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
-export default function Chatbody({ io }) {
+function Chatbody({ io }) {
   const id = useParams().id;
   const user = useSelector(selectUser);
   const dispatch = useDispatch();
@@ -43,9 +42,9 @@ export default function Chatbody({ io }) {
     };
   }, []);
 
-  const callMarkAsRead = () => {
+  const callMarkAsRead = useCallback(() => {
     dispatch(markAsRead(id));
-  };
+  }, [dispatch, id]);
 
   useEffect(() => {
     callMarkAsRead();
@@ -160,7 +159,7 @@ export const MessageSendingForm = ({ io, id, user, callMarkAsRead }) => {
           value={messsage}
           onChange={handleChange}
           className="border-2 border-gray-300 p-2 rounded-3xl focus:outline-none focus:border-blue-400 w-full"
-          onFocus={() => callMarkAsRead}
+          onFocus={callMarkAsRead}
         />
         <button
           type="submit"
@@ -172,3 +171,5 @@ export const MessageSendingForm = ({ io, id, user, callMarkAsRead }) => {
     </div>
   );
 };
+
+export default memo(Chatbody);

@@ -31,16 +31,6 @@ module.exports = {
 
     console.log("chats", chats);
 
-    const chats2 = await Chat.find({
-      where: {
-        sender: userId,
-        receiver: sender,
-        readStatus: false,
-      },
-    });
-
-    console.log("chats2", chats2);
-
     await Chat.update({
       sender,
       receiver: userId,
@@ -48,8 +38,10 @@ module.exports = {
     }).set({
       readStatus: true,
     });
+
     return exits.success({
       message: "success",
+      sender,
     });
   },
 };

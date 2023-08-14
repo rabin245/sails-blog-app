@@ -1,9 +1,12 @@
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useMatch } from "react-router-dom";
-import { useEffect } from "react";
-import { getContactedPerson } from "../../app/services/chat/chatSlice";
+import { memo, useEffect } from "react";
+import {
+  getContactedPerson,
+  updateContactedPerson,
+} from "../../app/services/chat/chatSlice";
 
-export default function ChatSidebar() {
+function ChatSidebar({ io }) {
   const dispatch = useDispatch();
   const { contactedPerson, isLoading, isError } = useSelector(
     (state) => state.chat
@@ -13,6 +16,17 @@ export default function ChatSidebar() {
   const id = match?.params?.id;
 
   useEffect(() => {
+    io.socket.on("unreadCount", (data) => {
+      console.log("unreadCount", data);
+      dispatch(updateContactedPerson(data));
+    });
+
+    // io.socket.on("mark-as-read", (data) => {
+    //   console.log("mark-as-read", data);
+    //   const { sender } = data;
+    //   dispatch(updateContactedPerson({ contact: { id: sender }, count: 0 }));
+    // });
+
     if (match) {
       dispatch(getContactedPerson(id));
     } else {
@@ -98,3 +112,5 @@ export function ChatCard({ person, isActive, unreadMsg }) {
     </>
   );
 }
+
+export default memo(ChatSidebar);
