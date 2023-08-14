@@ -3,18 +3,23 @@ import { useParams } from "react-router";
 import { getChat, postChat } from "../../utils/chat";
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import { selectUser } from "../../app/services/auth/authSlice";
+import { markAsRead } from "../../app/services/chat/chatSlice";
+import { useDispatch } from "react-redux";
 
 export default function Chatbody({ io }) {
   const id = useParams().id;
   const user = useSelector(selectUser);
+  const dispatch = useDispatch();
 
   const [chats, setChats] = useState([]);
 
   const contactedPerson = useSelector((state) => state.chat.contactedPerson);
 
   const currentContact = useMemo(() => {
-    const contact = contactedPerson.find((person) => person.id == id);
-    return contact ? contact.fullName : "";
+    console.log(contactedPerson);
+    const contact = contactedPerson.find((person) => person.contact.id == id);
+    console.log("contact", contact);
+    return contact ? contact.contact.fullName : "";
   }, [contactedPerson]);
 
   useEffect(() => {
@@ -38,7 +43,12 @@ export default function Chatbody({ io }) {
     };
   }, []);
 
+  const callMarkAsRead = () => {
+    dispatch(markAsRead(id));
+  };
+
   useEffect(() => {
+    callMarkAsRead();
     getChat(io, id, user.id).then((data) => {
       setChats(data.conversation);
     });
@@ -58,7 +68,12 @@ export default function Chatbody({ io }) {
             </div>
           ))}
         </div>
-        <MessageSendingForm io={io} id={id} user={user} />
+        <MessageSendingForm
+          io={io}
+          id={id}
+          user={user}
+          callMarkAsRead={callMarkAsRead}
+        />
       </div>
     </div>
   );
@@ -117,7 +132,7 @@ export const SentMessage = ({ chat }) => {
   );
 };
 
-export const MessageSendingForm = ({ io, id, user }) => {
+export const MessageSendingForm = ({ io, id, user, callMarkAsRead }) => {
   const [messsage, setMesssage] = useState("");
 
   const handleChange = (e) => {
@@ -145,6 +160,7 @@ export const MessageSendingForm = ({ io, id, user }) => {
           value={messsage}
           onChange={handleChange}
           className="border-2 border-gray-300 p-2 rounded-3xl focus:outline-none focus:border-blue-400 w-full"
+          onFocus={() => callMarkAsRead}
         />
         <button
           type="submit"
