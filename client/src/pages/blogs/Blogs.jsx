@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { memo, useEffect } from "react";
 import BlogCard from "../../component/blog/BlogCard";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -12,7 +12,7 @@ import {
 import ChatIcon from "../../component/chat/ChatIcon";
 import { joinRoom, leaveRoom } from "../../utils/blogs";
 
-export default function Blogs({ io }) {
+function Blogs({ io }) {
   const dispatch = useDispatch();
 
   const blogs = useSelector(selectBlogs);
@@ -82,3 +82,5 @@ export default function Blogs({ io }) {
 
   return layout(content);
 }
+
+export default memo(Blogs);

@@ -1,3 +1,4 @@
+import "./wdyr";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import "./index.css";
@@ -18,6 +19,15 @@ import ConfirmEmail from "./pages/auth/ConfirmEmail";
 import RegisterSuccess from "./pages/auth/RegisterSuccess";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
+
+// import whyDidYouRender from "@welldone-software/why-did-you-render";
+// import React from "react";
+
+// whyDidYouRender(React, {
+//   onlyLogs: true,
+//   titleColor: "green",
+//   diffNameColor: "darkturquoise",
+// });
 
 const io = connectToSocket();
 
@@ -90,6 +100,6 @@ ReactDOM.createRoot(document.getElementById("root")).render(
   // <React.StrictMode>
   <Provider store={store}>
     <RouterProvider router={router} fallbackElement={<h1>Loading ...</h1>} />
-  </Provider>,
+  </Provider>
   // </React.StrictMode>
 );

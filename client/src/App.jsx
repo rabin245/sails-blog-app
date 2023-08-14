@@ -12,5 +12,5 @@ function App() {
     </>
   );
 }
-
+App.whyDidYouRender = true;
 export default App;
