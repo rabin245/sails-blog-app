@@ -34,7 +34,7 @@ export const postChat = async (io, receiverId, senderId, message) => {
   //   );
   // });
 
-  const response = axios.post(
+  const response = await axios.post(
     `/api/chat/send`,
     {
       receiverId,

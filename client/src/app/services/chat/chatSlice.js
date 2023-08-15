@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 
-//  todo: use socket virtual requests
+//  todo: left to implement in the component
 const getChats = createAsyncThunk("chatApi/getChats", async (id) => {
   const response = await axios.get(`/api/chat/conversations/${id}`);
   return response.data;
@@ -36,7 +36,7 @@ const getContactedPerson = createAsyncThunk(
   }
 );
 
-//  todo: use socket virtual requests
+//  todo: left to implement in the component
 const sendChat = createAsyncThunk("chatApi/sendChat", async (newChat) => {
   const response = await axios.post("/api/chat/send", newChat);
   return response.data;
@@ -55,27 +55,18 @@ const chatSlice = createSlice({
   reducers: {
     updateContactedPerson: (state, action) => {
       const { contact, count } = action.payload;
-      const contactedPerson = [...state.contactedPerson]; // Create a shallow copy of the array
 
-      // console.log(
-      //   contactedPerson,
-      //   contact,
-      //   contactedPerson.findIndex((contactInfo) => {
-      //     contactInfo.contact.id == contact.id;
-      //   })
-      // );
-      const indexToUpdate = contactedPerson.findIndex(
+      const indexToUpdate = state.contactedPerson.findIndex(
         (contactInfo) => contactInfo.contact.id == contact.id
       );
 
       console.log(indexToUpdate);
 
       if (indexToUpdate !== -1) {
-        contactedPerson[indexToUpdate].count = count;
+        state.contactedPerson[indexToUpdate].count = count;
       } else {
-        contactedPerson.push({ contact, count });
+        state.contactedPerson.push({ contact, count });
       }
-      state.contactedPerson = contactedPerson;
     },
   },
   extraReducers: (builder) => {
@@ -125,29 +116,22 @@ const chatSlice = createSlice({
         state.sendChatStatus = "failed";
       })
       .addCase(markAsRead.pending, (state) => {
-        state.isLoading = true;
         state.isError = false;
       })
       .addCase(markAsRead.fulfilled, (state, action) => {
-        state.isLoading = false;
         state.isError = false;
 
-        // dispatch(updateContactedPerson({ contact: { id: sender }, count: 0 }));
-
         const { sender } = action.payload;
-        const contactedPerson = [...state.contactedPerson]; // Create a shallow copy of the array
 
-        const indexToUpdate = contactedPerson.findIndex(
+        const indexToUpdate = state.contactedPerson.findIndex(
           (contactInfo) => contactInfo.contact.id == sender
         );
 
         if (indexToUpdate !== -1) {
-          contactedPerson[indexToUpdate].count = 0;
+          state.contactedPerson[indexToUpdate].count = 0;
         }
-        state.contactedPerson = contactedPerson;
       })
       .addCase(markAsRead.rejected, (state) => {
-        state.isLoading = false;
         state.isError = true;
       });
   },

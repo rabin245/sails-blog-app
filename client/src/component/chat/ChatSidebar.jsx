@@ -53,21 +53,19 @@ function ChatSidebar({ io }) {
     );
   }
 
+  console.log("contactedPerson", contactedPerson);
+
   return layout(
     <>
-      {console.log("contactedPerson", contactedPerson)}
       {contactedPerson.length != 0 ? (
         <div className="flex flex-col my-1 gap-1 overflow-y-auto h-[calc(100%-3.5rem)] scrollbar-thin scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-500 scrollbar-thumb-rounded-lg">
           {contactedPerson.map((person, index) => (
-            <>
-              {console.log(person)}
-              <ChatCard
-                key={index}
-                person={person.contact}
-                isActive={person.contact.id == id}
-                unreadMsg={person.count}
-              />
-            </>
+            <ChatCard
+              key={index}
+              person={person.contact}
+              isActive={person.contact.id == id}
+              unreadMsg={person.count}
+            />
           ))}
         </div>
       ) : (
@@ -81,10 +79,9 @@ function ChatSidebar({ io }) {
   );
 }
 
-export function ChatCard({ person, isActive, unreadMsg }) {
+function ChatCard({ person, isActive, unreadMsg }) {
   return (
     <>
-      {console.log(person)}
       <Link to={`/chat/${person.id}`}>
         <div className="flex items-center px-2">
           <div
@@ -112,5 +109,5 @@ export function ChatCard({ person, isActive, unreadMsg }) {
     </>
   );
 }
-
+ChatSidebar.whyDidYouRender = true;
 export default memo(ChatSidebar);

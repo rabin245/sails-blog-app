@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router";
 import { getChat, postChat } from "../../utils/chat";
 import { selectUser } from "../../app/services/auth/authSlice";
@@ -15,13 +15,16 @@ function Chatbody({ io }) {
   const contactedPerson = useSelector((state) => state.chat.contactedPerson);
 
   const currentContact = useMemo(() => {
-    console.log(contactedPerson);
     const contact = contactedPerson.find((person) => person.contact.id == id);
     console.log("contact", contact);
     return contact ? contact.contact.fullName : "";
   }, [contactedPerson]);
 
+  const chatBodyRef = useRef(null);
+
   useEffect(() => {
+    console.log("running the useEffect of ChatBody");
+
     io.socket.on("connect", () => {
       console.log("connected");
     });
@@ -37,8 +40,12 @@ function Chatbody({ io }) {
 
     io.socket.on(`chat`, handlerFunction);
 
+    chatBodyRef.current.addEventListener("click", callMarkAsRead);
+
     return () => {
       io.socket.off(`chat`, handlerFunction);
+
+      chatBodyRef.current.removeEventListener("click", callMarkAsRead);
     };
   }, []);
 
@@ -54,7 +61,7 @@ function Chatbody({ io }) {
   }, [id]);
 
   return (
-    <div className="w-4/5">
+    <div className="w-4/5" ref={chatBodyRef}>
       <ChatNavbar currentContact={currentContact} />
 
       <div className="flex flex-col justify-between bg-slate-800 min-h-[calc(100vh-6.5rem)]">
@@ -159,7 +166,6 @@ export const MessageSendingForm = ({ io, id, user, callMarkAsRead }) => {
           value={messsage}
           onChange={handleChange}
           className="border-2 border-gray-300 p-2 rounded-3xl focus:outline-none focus:border-blue-400 w-full"
-          onFocus={callMarkAsRead}
         />
         <button
           type="submit"
