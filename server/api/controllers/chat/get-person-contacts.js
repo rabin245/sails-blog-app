@@ -1,38 +1,42 @@
 module.exports = {
-  friendlyName: "Get person contacts",
+  friendlyName: "Get unread message counts",
 
-  description: "",
+  description: "Fetch the unread message counts for a user's contacts.",
 
-  inputs: {},
+  inputs: {
+    // userId: {
+    //   type: "number",
+    //   required: true,
+    //   description: "The ID of the user to fetch unread message counts for.",
+    // },
+  },
 
   exits: {},
 
   fn: async function (inputs, exits) {
+    // const userId = inputs.userId;
     const token = this.req.session.authToken;
-    const user = await sails.helpers.getUserFromToken(token);
-    const user1 = user.id;
+    const { id: userId } = await sails.helpers.getUserFromToken(token);
 
     const contacts = await Chat.find({
       where: {
         or: [
           {
-            sender: user1,
+            sender: userId,
           },
           {
-            receiver: user1,
+            receiver: userId,
           },
         ],
       },
       select: ["sender", "receiver"],
     });
 
-    console.log(contacts);
-
     const contactsArray = [];
 
     for (let i = 0; i < contacts.length; i++) {
       const contact = contacts[i];
-      if (contact.sender === user1) {
+      if (contact.sender === userId) {
         contactsArray.push(contact.receiver);
       } else {
         contactsArray.push(contact.sender);
@@ -41,11 +45,22 @@ module.exports = {
 
     const uniqueContacts = [...new Set(contactsArray)];
 
-    // Populate the user details for each unique contact
-    const populatedContacts = await User.find({ id: { in: uniqueContacts } });
+    // Fetch unread message counts for each contact
+    const contacedPerson = await Promise.all(
+      uniqueContacts.map(async (contactId) => {
+        console.log(contactId);
+        const contact = await User.findOne({ id: contactId });
+        const count = await Chat.count({
+          sender: contactId,
+          receiver: userId,
+          readStatus: false,
+        });
+        return { contact, count };
+      })
+    );
 
     return exits.success({
-      contacts: populatedContacts,
+      contacts: contacedPerson,
     });
   },
 };

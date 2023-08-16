@@ -1,23 +1,30 @@
-import { useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router";
 import { getChat, postChat } from "../../utils/chat";
-import { useSelector } from "react-redux/es/hooks/useSelector";
 import { selectUser } from "../../app/services/auth/authSlice";
+import { markAsRead } from "../../app/services/chat/chatSlice";
+import { useDispatch, useSelector } from "react-redux";
 
-export default function Chatbody({ io }) {
+function Chatbody({ io }) {
   const id = useParams().id;
   const user = useSelector(selectUser);
+  const dispatch = useDispatch();
 
   const [chats, setChats] = useState([]);
 
   const contactedPerson = useSelector((state) => state.chat.contactedPerson);
 
   const currentContact = useMemo(() => {
-    const contact = contactedPerson.find((person) => person.id == id);
-    return contact ? contact.fullName : "";
+    const contact = contactedPerson.find((person) => person.contact.id == id);
+    console.log("contact", contact);
+    return contact ? contact.contact.fullName : "";
   }, [contactedPerson]);
 
+  const chatBodyRef = useRef(null);
+
   useEffect(() => {
+    console.log("running the useEffect of ChatBody");
+
     io.socket.on("connect", () => {
       console.log("connected");
     });
@@ -33,19 +40,28 @@ export default function Chatbody({ io }) {
 
     io.socket.on(`chat`, handlerFunction);
 
+    chatBodyRef.current.addEventListener("click", callMarkAsRead);
+
     return () => {
       io.socket.off(`chat`, handlerFunction);
+
+      chatBodyRef.current.removeEventListener("click", callMarkAsRead);
     };
   }, []);
 
+  const callMarkAsRead = useCallback(() => {
+    dispatch(markAsRead(id));
+  }, [dispatch, id]);
+
   useEffect(() => {
+    callMarkAsRead();
     getChat(id).then((data) => {
       setChats(data.conversation);
     });
   }, [id]);
 
   return (
-    <div className="w-4/5">
+    <div className="w-4/5" ref={chatBodyRef}>
       <ChatNavbar currentContact={currentContact} />
 
       <div className="flex flex-col justify-between bg-slate-800 min-h-[calc(100vh-6.5rem)]">
@@ -59,7 +75,10 @@ export default function Chatbody({ io }) {
               </div>
             ))}
         </div>
-        <MessageSendingForm id={id} />
+        <MessageSendingForm
+          id={id}
+          callMarkAsRead={callMarkAsRead}
+        />
       </div>
     </div>
   );
@@ -118,7 +137,7 @@ export const SentMessage = ({ chat }) => {
   );
 };
 
-export const MessageSendingForm = ({ id }) => {
+export const MessageSendingForm = ({ id, callMarkAsRead }) => {
   const [messsage, setMesssage] = useState("");
 
   const handleChange = (e) => {
@@ -157,3 +176,5 @@ export const MessageSendingForm = ({ id }) => {
     </div>
   );
 };
+
+export default memo(Chatbody);

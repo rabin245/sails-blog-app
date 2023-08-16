@@ -50,6 +50,18 @@ module.exports = {
         });
       }
 
+      const contact = await User.findOne({ id: sender });
+      const count = await Chat.count({
+        sender: sender,
+        receiver: receiver,
+        readStatus: false,
+      });
+
+      sails.sockets.broadcast(`user-${receiver}`, "unreadCount", {
+        contact,
+        count,
+      });
+
       return exits.success({
         message: "Chat sent successfully",
       });

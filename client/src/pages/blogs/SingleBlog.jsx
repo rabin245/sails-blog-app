@@ -6,7 +6,7 @@ import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
 import { FaRegComment } from "react-icons/fa";
 import { IoShareOutline } from "react-icons/io5";
 import { FiLink } from "react-icons/fi";
-import { useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import CommentBar from "./CommentBar";
 import ChatIcon from "../../component/chat/ChatIcon";
 import UserAvatar from "../../component/UserAvatar";
@@ -29,7 +29,7 @@ import {
 } from "../../app/services/blog/blogSlice";
 import { joinSingleRoom, leaveSingleRoom } from "../../utils/blogs";
 
-export default function SingleBlog({ io }) {
+function SingleBlog({ io }) {
   const { id } = useParams();
   const dispatch = useDispatch();
 
@@ -315,3 +315,5 @@ export function BlogMetaData({ blog, user }) {
     </div>
   );
 }
+
+export default memo(SingleBlog);

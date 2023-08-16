@@ -1,9 +1,14 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 
-//  todo: use socket virtual requests
+//  todo: left to implement in the component
 const getChats = createAsyncThunk("chatApi/getChats", async (id) => {
   const response = await axios.get(`/api/chat/conversations/${id}`);
+  return response.data;
+});
+
+const markAsRead = createAsyncThunk("chatApi/markAsRead", async (id) => {
+  const response = await axios.put(`/api/chat/mark-read/${id}`);
   return response.data;
 });
 
@@ -15,29 +20,27 @@ const getContactedPerson = createAsyncThunk(
     if (id) {
       const contacts = response.data.contacts;
       const isContactExist = contacts.some(
-        (contact) => contact.id == id,
+        (contact) => contact.contact.id == id
       );
 
       if (!isContactExist) {
         const newContact = await axios.get(`/api/user/${id}`);
         response.data.contacts = [
           ...response.data.contacts,
-          newContact.data.user,
+          { contact: newContact.data.user, count: 0 },
         ];
       }
     }
+    console.log(response);
     return response.data;
-  },
+  }
 );
 
-//  todo: use socket virtual requests
-const sendChat = createAsyncThunk(
-  "chatApi/sendChat",
-  async (newChat) => {
-    const response = await axios.post("/api/chat/send", newChat);
-    return response.data;
-  },
-);
+//  todo: left to implement in the component
+const sendChat = createAsyncThunk("chatApi/sendChat", async (newChat) => {
+  const response = await axios.post("/api/chat/send", newChat);
+  return response.data;
+});
 
 const chatSlice = createSlice({
   name: "chat",
@@ -47,8 +50,25 @@ const chatSlice = createSlice({
     sendChatStatus: "idle",
     isLoading: false,
     isError: false,
+    // noOfUnreadmesg: 0,
   },
-  reducers: {},
+  reducers: {
+    updateContactedPerson: (state, action) => {
+      const { contact, count } = action.payload;
+
+      const indexToUpdate = state.contactedPerson.findIndex(
+        (contactInfo) => contactInfo.contact.id == contact.id
+      );
+
+      console.log(indexToUpdate);
+
+      if (indexToUpdate !== -1) {
+        state.contactedPerson[indexToUpdate].count = count;
+      } else {
+        state.contactedPerson.push({ contact, count });
+      }
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(getChats.pending, (state) => {
@@ -74,6 +94,7 @@ const chatSlice = createSlice({
         state.isLoading = false;
         state.isError = false;
         state.contactedPerson = action.payload.contacts;
+        // state.noOfUnreadmesg = action.payload.unreadCounts.count;
       })
       .addCase(getContactedPerson.rejected, (state) => {
         state.isLoading = false;
@@ -93,9 +114,30 @@ const chatSlice = createSlice({
         state.isLoading = false;
         state.isError = true;
         state.sendChatStatus = "failed";
+      })
+      .addCase(markAsRead.pending, (state) => {
+        state.isError = false;
+      })
+      .addCase(markAsRead.fulfilled, (state, action) => {
+        state.isError = false;
+
+        const { sender } = action.payload;
+
+        const indexToUpdate = state.contactedPerson.findIndex(
+          (contactInfo) => contactInfo.contact.id == sender
+        );
+
+        if (indexToUpdate !== -1) {
+          state.contactedPerson[indexToUpdate].count = 0;
+        }
+      })
+      .addCase(markAsRead.rejected, (state) => {
+        state.isError = true;
       });
   },
 });
 
-export { getChats, getContactedPerson, sendChat };
+export const { updateContactedPerson } = chatSlice.actions;
+
+export { getChats, getContactedPerson, sendChat, markAsRead };
 export default chatSlice.reducer;

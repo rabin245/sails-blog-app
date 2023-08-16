@@ -1,18 +1,32 @@
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useMatch } from "react-router-dom";
-import { useEffect } from "react";
-import { getContactedPerson } from "../../app/services/chat/chatSlice";
+import { memo, useEffect } from "react";
+import {
+  getContactedPerson,
+  updateContactedPerson,
+} from "../../app/services/chat/chatSlice";
 
-export default function ChatSidebar() {
+function ChatSidebar({ io }) {
   const dispatch = useDispatch();
   const { contactedPerson, isLoading, isError } = useSelector(
-    (state) => state.chat,
+    (state) => state.chat
   );
 
   const match = useMatch("/chat/:id");
   const id = match?.params?.id;
 
   useEffect(() => {
+    io.socket.on("unreadCount", (data) => {
+      console.log("unreadCount", data);
+      dispatch(updateContactedPerson(data));
+    });
+
+    // io.socket.on("mark-as-read", (data) => {
+    //   console.log("mark-as-read", data);
+    //   const { sender } = data;
+    //   dispatch(updateContactedPerson({ contact: { id: sender }, count: 0 }));
+    // });
+
     if (match) {
       dispatch(getContactedPerson(id));
     } else {
@@ -35,52 +49,65 @@ export default function ChatSidebar() {
     return layout(
       <h1 className="text-md text-gray-500 font-bold block">
         Oops! Something went wrong.
-      </h1>,
+      </h1>
     );
   }
 
+  console.log("contactedPerson", contactedPerson);
+
   return layout(
     <>
-      {contactedPerson.length != 0
-        ? (
-          <div className="flex flex-col my-1 gap-1 overflow-y-auto h-[calc(100%-3.5rem)] scrollbar-thin scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-500 scrollbar-thumb-rounded-lg">
-            {contactedPerson.map((person, index) => (
-              <ChatCard
-                key={index}
-                person={person}
-                isActive={person.id == id}
-              />
-            ))}
-          </div>
-        )
-        : (
-          <div className="flex justify-center items-center p-3">
-            <h1 className="text-md text-gray-500 font-bold block">
-              Oops! You have no conversation to show.
-            </h1>
-          </div>
-        )}
-    </>,
+      {contactedPerson.length != 0 ? (
+        <div className="flex flex-col my-1 gap-1 overflow-y-auto h-[calc(100%-3.5rem)] scrollbar-thin scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-500 scrollbar-thumb-rounded-lg">
+          {contactedPerson.map((person, index) => (
+            <ChatCard
+              key={index}
+              person={person.contact}
+              isActive={person.contact.id == id}
+              unreadMsg={person.count}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="flex justify-center items-center p-3">
+          <h1 className="text-md text-gray-500 font-bold block">
+            Oops! You have no conversation to show.
+          </h1>
+        </div>
+      )}
+    </>
   );
 }
 
-export function ChatCard({ person, isActive }) {
+function ChatCard({ person, isActive, unreadMsg }) {
   return (
-    <Link to={`/chat/${person.id}`}>
-      <div className="flex items-center px-2">
-        <div
-          className={`flex gap-2 items-center p-2 hover:bg-slate-700 w-full rounded text-gray-200 hover:text-white hover:shadow ${
-            isActive && "bg-slate-700 shadow"
-          }`}
-        >
-          <img
-            src="https://picsum.photos/200"
-            alt="server icon"
-            className="w-8 h-8 rounded-full"
-          />
-          <h1 className="text-md font-bold">{person.fullName}</h1>
+    <>
+      <Link to={`/chat/${person.id}`}>
+        <div className="flex items-center px-2">
+          <div
+            className={` relative flex gap-3 items-center p-2 hover:bg-slate-700 w-full rounded text-gray-200 hover:text-white hover:shadow ${
+              isActive && "bg-slate-700 shadow"
+            }`}
+          >
+            <img
+              src="https://picsum.photos/200"
+              alt="server icon"
+              className="w-8 h-8 rounded-full"
+            />
+            <h1 className="text-md font-bold">{person.fullName}</h1>
+            {unreadMsg != 0 && (
+              <>
+                <div className="absolute bg-blue-500 w-5 h-5 rounded-full text-xs text-center border-2 border-white top-2 left-6">
+                  {unreadMsg}
+                </div>
+                <div className=" ms-auto me-2 bg-blue-500 w-3 h-3 rounded-full "></div>
+              </>
+            )}
+          </div>
         </div>
-      </div>
-    </Link>
+      </Link>
+    </>
   );
 }
+ChatSidebar.whyDidYouRender = true;
+export default memo(ChatSidebar);

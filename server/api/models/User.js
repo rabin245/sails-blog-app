@@ -86,13 +86,17 @@ module.exports = {
       collection: "comment",
       via: "user",
     },
+    unreadCount: {
+      type: "number",
+      defaultsTo: 0,
+    },
   },
   customToJSON: function () {
     return _.pick(this, ["id", "fullName", "email"]);
   },
   beforeCreate: async function (values, proceed) {
     const hashedPassword = await sails.helpers.passwords.hashPassword(
-      values.password,
+      values.password
     );
 
     values.password = hashedPassword;
