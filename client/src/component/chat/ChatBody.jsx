@@ -55,7 +55,7 @@ function Chatbody({ io }) {
 
   useEffect(() => {
     callMarkAsRead();
-    getChat(io, id, user.id).then((data) => {
+    getChat(id).then((data) => {
       setChats(data.conversation);
     });
   }, [id]);
@@ -66,18 +66,17 @@ function Chatbody({ io }) {
 
       <div className="flex flex-col justify-between bg-slate-800 min-h-[calc(100vh-6.5rem)]">
         <div className="max-h-[calc(100vh-10rem)] overflow-y-auto px-3 py-4 scrollbar-thin scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-500 scrollbar-thumb-rounded-lg">
-          {chats.map((chat, index) => (
-            <div key={index} className="mb-1">
-              {chat.sender.id !== user.id && <RecievedMessage chat={chat} />}
+          {chats &&
+            chats.map((chat, index) => (
+              <div key={index} className="mb-1">
+                {chat.sender.id !== user.id && <RecievedMessage chat={chat} />}
 
-              {chat.sender.id === user.id && <SentMessage chat={chat} />}
-            </div>
-          ))}
+                {chat.sender.id === user.id && <SentMessage chat={chat} />}
+              </div>
+            ))}
         </div>
         <MessageSendingForm
-          io={io}
           id={id}
-          user={user}
           callMarkAsRead={callMarkAsRead}
         />
       </div>
@@ -138,7 +137,7 @@ export const SentMessage = ({ chat }) => {
   );
 };
 
-export const MessageSendingForm = ({ io, id, user, callMarkAsRead }) => {
+export const MessageSendingForm = ({ id, callMarkAsRead }) => {
   const [messsage, setMesssage] = useState("");
 
   const handleChange = (e) => {
@@ -147,9 +146,9 @@ export const MessageSendingForm = ({ io, id, user, callMarkAsRead }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    postChat(io, id, user.id, messsage).then((data) => {
-      console.log(data);
-    });
+    const res = await postChat(id, messsage);
+
+    console.log(res);
 
     setMesssage("");
   };
