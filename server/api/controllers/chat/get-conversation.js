@@ -3,22 +3,21 @@ module.exports = {
 
   description: "",
 
-  inputs: {},
+  inputs: {
+    receiverId: {
+      type: "number",
+      required: true,
+    },
+  },
 
   exits: {},
 
   fn: async function (inputs, exits) {
     try {
-      console.log("We here?");
-      console.log(this.req.session);
-      const queryString = this.req.query;
-      console.log(queryString);
-      // const { senderId, receiverId } = this.req.params;
+      const sender = this.req.user.id;
 
-      const user1 = parseInt(queryString.senderId);
-      const user2 = parseInt(queryString.receiverId);
-
-      console.log(user1, user2);
+      const user1 = sender;
+      const user2 = inputs.receiverId;
 
       const conversation = await Chat.find({
         where: {
