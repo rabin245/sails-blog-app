@@ -22,12 +22,12 @@ function Chatbody({ io }) {
 
   const chatBodyRef = useRef(null);
 
+  const callMarkAsRead = useCallback(() => {
+    dispatch(markAsRead(id));
+  }, [dispatch, id]);
+
   useEffect(() => {
     console.log("running the useEffect of ChatBody");
-
-    io.socket.on("connect", () => {
-      console.log("connected");
-    });
 
     const handlerFunction = (data) => {
       if (
@@ -45,13 +45,11 @@ function Chatbody({ io }) {
     return () => {
       io.socket.off(`chat`, handlerFunction);
 
-      chatBodyRef.current.removeEventListener("click", callMarkAsRead);
+      if (chatBodyRef.current) {
+        chatBodyRef.current.removeEventListener("click", callMarkAsRead);
+      }
     };
   }, []);
-
-  const callMarkAsRead = useCallback(() => {
-    dispatch(markAsRead(id));
-  }, [dispatch, id]);
 
   useEffect(() => {
     callMarkAsRead();
@@ -75,10 +73,7 @@ function Chatbody({ io }) {
               </div>
             ))}
         </div>
-        <MessageSendingForm
-          id={id}
-          callMarkAsRead={callMarkAsRead}
-        />
+        <MessageSendingForm id={id} callMarkAsRead={callMarkAsRead} />
       </div>
     </div>
   );
@@ -147,8 +142,6 @@ export const MessageSendingForm = ({ id, callMarkAsRead }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const res = await postChat(id, messsage);
-
-    console.log(res);
 
     setMesssage("");
   };
