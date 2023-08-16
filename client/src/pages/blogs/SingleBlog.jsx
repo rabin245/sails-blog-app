@@ -12,22 +12,14 @@ import ChatIcon from "../../component/chat/ChatIcon";
 import UserAvatar from "../../component/UserAvatar";
 import PostInteractionIcons from "../../component/blog/PostInteractionIcons";
 import {
-  commentOnPost,
-  getBlogById,
   likePost,
-  selectCurrentBlog,
-  selectError,
-  selectIsCurrentBlogLiked,
-  selectNoOfLikes,
-  selectIsError,
-  selectIsLoading,
   unlikePost,
-  addBlog,
-  increaseLikes,
-  decreaseLikes,
-  updateComments,
+  setCurrentPostComments,
+  updateCurrentPostComments,
 } from "../../app/services/blog/blogSlice";
 import { joinSingleRoom, leaveSingleRoom } from "../../utils/blogs";
+import { commentOnPost, getSinglePost } from "../../api/singlePostApi";
+import useSWR from "swr";
 
 function SingleBlog({ io }) {
   const { id } = useParams();
@@ -35,14 +27,14 @@ function SingleBlog({ io }) {
 
   useEffect(() => {
     joinSingleRoom(io, id).then((data) => {
-      console.log("Joined single room");
-      console.log(data);
+      // console.log("Joined single room");
+      // console.log(data);
     });
 
     const postLikedHandlerFunction = (data) => {
       console.log("Post liked");
       console.log(data);
-      dispatch(increaseLikes());
+      // dispatch(increaseLikes());
     };
 
     io.socket.on("post-liked", postLikedHandlerFunction);
@@ -50,7 +42,7 @@ function SingleBlog({ io }) {
     const postUnlikeHandlerFunction = (data) => {
       console.log("Post unliked");
       console.log(data);
-      dispatch(decreaseLikes());
+      // dispatch(decreaseLikes());
     };
 
     io.socket.on("post-unliked", postUnlikeHandlerFunction);
@@ -58,15 +50,15 @@ function SingleBlog({ io }) {
     const commentCreatedHandlerFunction = (data) => {
       console.log("Comment created");
       console.log(data);
-      dispatch(updateComments(data.comment));
+      // dispatch(updateComments(data.comment));
     };
 
     io.socket.on("comment-created", commentCreatedHandlerFunction);
 
     return () => {
       leaveSingleRoom(io, id).then((data) => {
-        console.log("Left single room");
-        console.log(data);
+        // console.log("Left single room");
+        // console.log(data);
       });
 
       io.socket.off("post-liked", postLikedHandlerFunction);
@@ -81,38 +73,86 @@ function SingleBlog({ io }) {
 
   const user = useSelector(selectUser);
 
-  useEffect(() => {
-    dispatch(getBlogById(id));
-  }, [dispatch, id]);
+  const {
+    isLoading,
+    error,
+    data: currentBlog,
+    mutate,
+  } = useSWR(`/api/posts/${id}`, getSinglePost, {
+    onError: (err) => {
+      console.log(err);
+    },
+    onSuccess: (data) => {
+      console.log(data);
+    },
+    revalidateOnFocus: false,
+  });
 
-  const currentBlog = useSelector(selectCurrentBlog);
-  const isLoading = useSelector(selectIsLoading);
-  const isError = useSelector(selectIsError);
-  const error = useSelector(selectError);
-  const noOfLikes = useSelector(selectNoOfLikes);
-  const isCurrentBlogLiked = useSelector(selectIsCurrentBlogLiked);
+  useEffect(() => {
+    if (currentBlog)
+      dispatch(setCurrentPostComments(currentBlog?.post?.comments));
+  }, [currentBlog]);
 
   const blog = useMemo(() => {
     if (currentBlog) {
       return {
-        ...currentBlog,
-        content: parseJSON(currentBlog.content),
+        ...currentBlog?.post,
+        content: parseJSON(currentBlog?.post?.content),
       };
     }
   }, [currentBlog]);
 
-  const postComments = useMemo(() => {
-    if (currentBlog) {
-      return currentBlog.comments;
-    }
-  }, [currentBlog]);
+  const postComments = useSelector((state) => state.blog.currentPostComments);
 
   const noOfPostLikers = useMemo(() => {
-    return noOfLikes;
-  }, [noOfLikes]);
+    return currentBlog?.numberOfLikes;
+  }, [currentBlog]);
 
-  const onCommentSubmit = (message) => {
-    dispatch(commentOnPost({ postId: id, content: message }));
+  const isCurrentBlogLiked = useMemo(() => {
+    return currentBlog?.isLiked;
+  }, [currentBlog]);
+
+  const commentOnPostMutation = async (comment) => {
+    const newComment = {
+      createdAt: Date.now(),
+      content: comment,
+      user: {
+        fullName: user.fullName,
+        id: user.id,
+      },
+      post: id,
+    };
+
+    try {
+      await mutate(commentOnPost(id, comment), {
+        optimisticData: (prev) => {
+          const newPost = {
+            ...prev,
+            post: {
+              ...prev.post,
+              comments: [...prev.post.comments, newComment],
+            },
+          };
+
+          return newPost;
+        },
+        rollbackOnError: true,
+        populateCache: (updatedPost, oldPost) => {
+          const newPost = {
+            ...oldPost,
+            post: {
+              ...oldPost.post,
+              comments: [...oldPost.post.comments, updatedPost.data],
+            },
+          };
+
+          return newPost;
+        },
+        revalidate: false,
+      });
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const handlePostLike = () => {
@@ -136,15 +176,6 @@ function SingleBlog({ io }) {
           </div>
         </div>
         <ChatIcon />
-        {user && (
-          <CommentBar
-            toggleCommentBar={toggleCommentBar}
-            isCommentBarOpen={isCommentBarOpen}
-            postComments={postComments}
-            user={user}
-            onCommentSubmit={onCommentSubmit}
-          />
-        )}
       </div>
     );
   };
@@ -153,7 +184,7 @@ function SingleBlog({ io }) {
     return layout(<div>Loading...</div>);
   }
 
-  if (isError) {
+  if (error) {
     return layout(
       <div className="text-red-500">
         <h1 className="text-xl text-center">Error</h1>
@@ -163,27 +194,38 @@ function SingleBlog({ io }) {
   }
 
   return layout(
-    <div className=" bg-slate-800 py-5 px-10 rounded-xl shadow-2xl w-full">
-      <h1 className="text-4xl font-bold mb-5">{blog?.title}</h1>
+    <>
+      <div className=" bg-slate-800 py-5 px-10 rounded-xl shadow-2xl w-full">
+        <h1 className="text-4xl font-bold mb-5">{blog?.title}</h1>
 
-      <BlogMetaData blog={blog} user={user} />
+        <BlogMetaData blog={blog} user={user} />
 
-      <LikesAndCommentsSection
-        toggleCommentBar={toggleCommentBar}
-        isCommentBarOpen={isCommentBarOpen}
-        noOfLikers={noOfPostLikers}
-        comments={postComments}
-        user={user}
-        isLiked={isCurrentBlogLiked}
-        handlePostLike={handlePostLike}
-        handlePostUnlike={handlePostUnlike}
-      />
+        <LikesAndCommentsSection
+          toggleCommentBar={toggleCommentBar}
+          isCommentBarOpen={isCommentBarOpen}
+          noOfLikers={noOfPostLikers}
+          comments={postComments}
+          user={user}
+          isLiked={isCurrentBlogLiked}
+          handlePostLike={handlePostLike}
+          handlePostUnlike={handlePostUnlike}
+        />
 
-      <div
-        className="pe-2 text-xl max-w-[80vw]  break-words"
-        dangerouslySetInnerHTML={blog?.content}
-      ></div>
-    </div>
+        <div
+          className="pe-2 text-xl max-w-[80vw]  break-words"
+          dangerouslySetInnerHTML={blog?.content}
+        ></div>
+      </div>
+      {user && (
+        <CommentBar
+          toggleCommentBar={toggleCommentBar}
+          isCommentBarOpen={isCommentBarOpen}
+          postComments={postComments}
+          user={user}
+          onCommentSubmit={commentOnPostMutation}
+        />
+      )}
+    </>
   );
 }
 

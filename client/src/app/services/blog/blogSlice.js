@@ -68,24 +68,6 @@ export const unlikePost = createAsyncThunk(
   }
 );
 
-export const commentOnPost = createAsyncThunk(
-  "blog/commentOnPost",
-  async ({ postId, content }, { dispatch, getState }) => {
-    const response = await axios.post(`/api/posts/${postId}/comment`, {
-      content,
-    });
-    console.log(response);
-    // const newComment = response.data.data;
-    // const { currentBlog } = getState().blog;
-    // const updatedComments = [...currentBlog.comments, newComment];
-    // const updatedCurrentBlog = {
-    //   ...currentBlog,
-    //   comments: updatedComments,
-    // };
-
-    // dispatch(blogSlice.actions.updateCurrentBlog(updatedCurrentBlog));
-  }
-);
 
 const blogSlice = createSlice({
   name: "blog",
@@ -97,6 +79,7 @@ const blogSlice = createSlice({
     isLoading: false,
     isError: false,
     error: null,
+    currentPostComments: []
   },
   reducers: {
     addBlog: (state, action) => {
@@ -111,9 +94,12 @@ const blogSlice = createSlice({
     decreaseLikes: (state) => {
       state.noOfLikes -= 1;
     },
-    updateComments: (state, action) => {
-      state.currentBlog.comments.push(action.payload);
+    setCurrentPostComments: (state, action) => {
+      state.currentPostComments = action.payload;
     },
+    updateCurrentPostComments: (state, action) => {
+      state.currentPostComments.push(action.payload);
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -170,7 +156,8 @@ export const {
   increaseLikes,
   decreaseLikes,
   updateCurrentBlog,
-  updateComments,
+  setCurrentPostComments,
+  updateCurrentPostComments
 } = blogSlice.actions;
 
 export default blogSlice.reducer;
