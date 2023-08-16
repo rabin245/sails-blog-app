@@ -48,9 +48,13 @@ function SingleBlog({ io }) {
     io.socket.on("post-unliked", postUnlikeHandlerFunction);
 
     const commentCreatedHandlerFunction = (data) => {
-      console.log("Comment created");
+      console.log("new comment created event");
       console.log(data);
-      // dispatch(updateComments(data.comment));
+      const { comment } = data;
+
+      if (postComments.find((c) => c.id == comment.id)) return;
+
+      dispatch(updateCurrentPostComments(comment));
     };
 
     io.socket.on("comment-created", commentCreatedHandlerFunction);
