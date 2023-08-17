@@ -1,7 +1,7 @@
 module.exports = {
-  friendlyName: "Get conversation",
+  friendlyName: "Get conversation of two users",
 
-  description: "",
+  description: "Get the conversation between two users.",
 
   inputs: {
     receiverId: {
@@ -14,9 +14,7 @@ module.exports = {
 
   fn: async function (inputs, exits) {
     try {
-      const sender = this.req.user.id;
-
-      const user1 = sender;
+      const user1 = this.req.user.id;
       const user2 = inputs.receiverId;
 
       const conversation = await Chat.find({

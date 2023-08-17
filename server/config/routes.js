@@ -61,6 +61,5 @@ module.exports.routes = {
   "GET /chat/join-room": "chat/join-room",
   "GET /chat/leave-room": "chat/leave-room",
   "GET /user/:id": "user/get-user",
-  "GET /chat/unread": "chat/get-unread-counts",
   "PUT /chat/mark-read/:id": "chat/mark-as-read",
 };
