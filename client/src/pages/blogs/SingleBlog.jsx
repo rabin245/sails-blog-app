@@ -1,25 +1,24 @@
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { parseJSON } from "../../utils/parseJson";
 import { useDispatch, useSelector } from "react-redux";
 import { selectUser } from "../../app/services/auth/authSlice";
-import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
-import { FaRegComment } from "react-icons/fa";
-import { IoShareOutline } from "react-icons/io5";
-import { FiLink } from "react-icons/fi";
-import { memo, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import CommentBar from "./CommentBar";
 import ChatIcon from "../../component/chat/ChatIcon";
 import UserAvatar from "../../component/UserAvatar";
-import PostInteractionIcons from "../../component/blog/PostInteractionIcons";
 import {
-  likePost,
-  unlikePost,
   setCurrentPostComments,
-  updateCurrentPostComments,
+  setCurrentPostLikers,
 } from "../../app/services/blog/blogSlice";
 import { joinSingleRoom, leaveSingleRoom } from "../../utils/blogs";
-import { commentOnPost, getSinglePost } from "../../api/singlePostApi";
+import {
+  commentOnPost,
+  getSinglePost,
+  likePost,
+  unlikePost,
+} from "../../api/singlePostApi";
 import useSWR from "swr";
+import LikesAndCommentsSection from "./LikesAndCommentsSection";
 
 function SingleBlog({ io }) {
   const { id } = useParams();
@@ -32,29 +31,73 @@ function SingleBlog({ io }) {
     });
 
     const postLikedHandlerFunction = (data) => {
-      console.log("Post liked");
+      console.log("\n\nnew post like event");
       console.log(data);
-      // dispatch(increaseLikes());
+
+      if (user && data.user.id == user.id) {
+        console.log("Post liked by current user so returning");
+        return;
+      }
+
+      mutate((prev) => {
+        const newPost = {
+          ...prev,
+          post: {
+            ...prev.post,
+            likers: [...prev.post.likers, data.user],
+          },
+          numberOfLikes: prev.numberOfLikes + 1,
+        };
+
+        return newPost;
+      }, false);
     };
 
     io.socket.on("post-liked", postLikedHandlerFunction);
 
     const postUnlikeHandlerFunction = (data) => {
-      console.log("Post unliked");
+      console.log("\n\nnew post unlike event");
       console.log(data);
-      // dispatch(decreaseLikes());
+
+      if (user && data.user.id == user.id) {
+        console.log("Post unliked by current user so returning");
+        return;
+      }
+
+      mutate((prev) => {
+        const newPost = {
+          ...prev,
+          post: {
+            ...prev.post,
+            likers: prev.post.likers.filter(
+              (liker) => liker.id != data.user.id
+            ),
+          },
+          numberOfLikes: prev.numberOfLikes - 1,
+        };
+
+        return newPost;
+      }, false);
     };
 
     io.socket.on("post-unliked", postUnlikeHandlerFunction);
 
     const commentCreatedHandlerFunction = (data) => {
-      console.log("new comment created event");
+      console.log("\n\nnew comment created event");
       console.log(data);
       const { comment } = data;
 
-      if (postComments.find((c) => c.id == comment.id)) return;
+      mutate((prev) => {
+        const newPost = {
+          ...prev,
+          post: {
+            ...prev.post,
+            comments: [...prev.post.comments, comment],
+          },
+        };
 
-      dispatch(updateCurrentPostComments(comment));
+        return newPost;
+      }, false);
     };
 
     io.socket.on("comment-created", commentCreatedHandlerFunction);
@@ -93,8 +136,14 @@ function SingleBlog({ io }) {
   });
 
   useEffect(() => {
-    if (currentBlog)
-      dispatch(setCurrentPostComments(currentBlog?.post?.comments));
+    if (currentBlog) {
+      console.log(
+        "running dispatches for comment and likers since currentBlog changed",
+        currentBlog
+      );
+      dispatch(setCurrentPostComments(currentBlog.post.comments));
+      dispatch(setCurrentPostLikers(currentBlog.post.likers));
+    }
   }, [currentBlog]);
 
   const blog = useMemo(() => {
@@ -108,15 +157,9 @@ function SingleBlog({ io }) {
 
   const postComments = useSelector((state) => state.blog.currentPostComments);
 
-  const noOfPostLikers = useMemo(() => {
-    return currentBlog?.numberOfLikes;
-  }, [currentBlog]);
+  const postLikers = useSelector((state) => state.blog.currentPostLikers);
 
-  const isCurrentBlogLiked = useMemo(() => {
-    return currentBlog?.isLiked;
-  }, [currentBlog]);
-
-  const commentOnPostMutation = async (comment) => {
+  const commentOnPostMutation = useCallback(async (comment) => {
     const newComment = {
       createdAt: Date.now(),
       content: comment,
@@ -137,6 +180,59 @@ function SingleBlog({ io }) {
               comments: [...prev.post.comments, newComment],
             },
           };
+          return newPost;
+        },
+        rollbackOnError: true,
+        // not populating the cache from this mutate because
+        // the comment event sent from socket is broadcasted to all clients
+        // so handling the populating of cache in event handler function instead
+        // P.S. socket virtual requests were necessary to selectively not broadcast
+        // to the client who sent the request
+
+        // populateCache: (updatedPost, oldPost) => {
+        //   console.log(
+        //     "\n\nPopulate cache for comment mutation\n\n",
+        //     updatedPost,
+        //     oldPost
+        //   );
+        //   const newPost = {
+        //     ...oldPost,
+        //     post: {
+        //       ...oldPost.post,
+        //       comments: [...oldPost.post.comments, updatedPost.data],
+        //     },
+        //   };
+
+        //   console.log(newPost + "\n\n");
+
+        //   return newPost;
+        // },
+        populateCache: false,
+        revalidate: false,
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  }, []);
+
+  const likePostMutation = useCallback(async () => {
+    const newLiker = {
+      fullName: user.fullName,
+      id: user.id,
+    };
+
+    try {
+      await mutate(likePost(id), {
+        optimisticData: (prev) => {
+          const newPost = {
+            ...prev,
+            post: {
+              ...prev.post,
+              likers: [...prev.post.likers, newLiker],
+            },
+            numberOfLikes: prev.numberOfLikes + 1,
+            isLiked: true,
+          };
 
           return newPost;
         },
@@ -146,8 +242,10 @@ function SingleBlog({ io }) {
             ...oldPost,
             post: {
               ...oldPost.post,
-              comments: [...oldPost.post.comments, updatedPost.data],
+              likers: [...oldPost.post.likers, newLiker],
             },
+            numberOfLikes: oldPost.numberOfLikes + 1,
+            isLiked: true,
           };
 
           return newPost;
@@ -157,19 +255,50 @@ function SingleBlog({ io }) {
     } catch (error) {
       console.log(error);
     }
-  };
+  }, []);
 
-  const handlePostLike = () => {
-    dispatch(likePost(id));
-  };
+  const unlikePostMutation = useCallback(async () => {
+    try {
+      await mutate(unlikePost(id), {
+        optimisticData: (prev) => {
+          const newPost = {
+            ...prev,
+            post: {
+              ...prev.post,
+              likers: prev.post.likers.filter((liker) => liker.id != user.id),
+            },
+            numberOfLikes: prev.numberOfLikes - 1,
+            isLiked: false,
+          };
 
-  const handlePostUnlike = () => {
-    dispatch(unlikePost(id));
-  };
+          return newPost;
+        },
+        rollbackOnError: true,
+        populateCache: (updatedPost, oldPost) => {
+          const newPost = {
+            ...oldPost,
+            post: {
+              ...oldPost.post,
+              likers: oldPost.post.likers.filter(
+                (liker) => liker.id != user.id
+              ),
+            },
+            numberOfLikes: oldPost.numberOfLikes - 1,
+            isLiked: false,
+          };
 
-  const toggleCommentBar = () => {
-    setIsCommentBarOpen(!isCommentBarOpen);
-  };
+          return newPost;
+        },
+        revalidate: false,
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  }, []);
+
+  const toggleCommentBar = useCallback(() => {
+    setIsCommentBarOpen((prev) => !prev);
+  }, [isCommentBarOpen, setIsCommentBarOpen]);
 
   const layout = (content) => {
     return (
@@ -207,12 +336,11 @@ function SingleBlog({ io }) {
         <LikesAndCommentsSection
           toggleCommentBar={toggleCommentBar}
           isCommentBarOpen={isCommentBarOpen}
-          noOfLikers={noOfPostLikers}
           comments={postComments}
           user={user}
-          isLiked={isCurrentBlogLiked}
-          handlePostLike={handlePostLike}
-          handlePostUnlike={handlePostUnlike}
+          handlePostLike={likePostMutation}
+          handlePostUnlike={unlikePostMutation}
+          postLikers={postLikers}
         />
 
         <div
@@ -233,111 +361,7 @@ function SingleBlog({ io }) {
   );
 }
 
-export function LikesAndCommentsSection({
-  toggleCommentBar,
-  noOfLikers,
-  isLiked,
-  comments,
-  user,
-  handlePostLike,
-  handlePostUnlike,
-}) {
-  const navigate = useNavigate();
-
-  const [isPostLiked, setIsPostLiked] = useState(isLiked || false);
-  // const [noOfPostLikers, setNoOfLikers] = useState(noOfLikers || 0);
-
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-
-  const toggleLike = async () => {
-    if (!user) {
-      navigate("/login");
-      return;
-    }
-
-    setIsPostLiked((prev) => !prev);
-
-    if (isPostLiked) {
-      console.log("unliking");
-      // setNoOfLikers((prev) => prev - 1);
-      handlePostUnlike();
-    } else {
-      console.log("liking post");
-      // setNoOfLikers((prev) => prev + 1);
-      handlePostLike();
-    }
-  };
-
-  const toggleComment = () => {
-    if (!user) {
-      navigate("/login");
-      return;
-    }
-
-    toggleCommentBar();
-  };
-
-  const toggleShare = () => {
-    setIsShareModalOpen(!isShareModalOpen);
-  };
-
-  const copyToClipboard = () => {
-    const url = window.location.href;
-    navigator.clipboard
-      .writeText(url)
-      .then(() => {
-        toggleShare();
-        alert("Link copied to clipboard!");
-      })
-      .catch((error) => {
-        console.error("Failed to copy link:", error);
-      });
-  };
-
-  return (
-    <div>
-      <div className="flex p-2 border-y border-gray-600 mb-10 relative gap-2 items-center">
-        <PostInteractionIcons value={noOfLikers}>
-          {isPostLiked ? (
-            <AiFillHeart
-              className="text-2xl cursor-pointer"
-              onClick={toggleLike}
-              fill="red"
-            />
-          ) : (
-            <AiOutlineHeart
-              className="text-2xl cursor-pointer"
-              onClick={toggleLike}
-            />
-          )}
-        </PostInteractionIcons>
-        <PostInteractionIcons value={comments?.length}>
-          <FaRegComment
-            className="text-2xl ml-10 cursor-pointer"
-            onClick={toggleComment}
-          />
-        </PostInteractionIcons>
-        <PostInteractionIcons>
-          <IoShareOutline
-            className="text-2xl ml-auto cursor-pointer"
-            onClick={toggleShare}
-          />
-        </PostInteractionIcons>
-        <div
-          onClick={copyToClipboard}
-          className={`${
-            isShareModalOpen ? "opacity-100" : "opacity-0"
-          } cursor-pointer flex gap-2 items-center justify-center mb-10 absolute right-2 top-10  w-36 py-2  bg-slate-700 shadow-md text-center`}
-        >
-          <FiLink className="text-2xl" />
-          <span>Copy Link</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export function BlogMetaData({ blog, user }) {
+function BlogMetaData({ blog, user }) {
   return (
     <div className="flex gap-2 items-center mb-10">
       <UserAvatar name={blog?.author?.fullName} customStyle={"h-10 w-10"} />
@@ -362,4 +386,5 @@ export function BlogMetaData({ blog, user }) {
   );
 }
 
+SingleBlog.whyDidYouRender = true;
 export default memo(SingleBlog);

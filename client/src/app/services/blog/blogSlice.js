@@ -74,12 +74,11 @@ const blogSlice = createSlice({
   initialState: {
     blogs: [],
     currentBlog: null,
-    isCurrentBlogLiked: false,
-    noOfLikes: 0,
     isLoading: false,
     isError: false,
     error: null,
-    currentPostComments: []
+    currentPostComments: [],
+    currentPostLikers: [],
   },
   reducers: {
     addBlog: (state, action) => {
@@ -88,18 +87,12 @@ const blogSlice = createSlice({
     updateCurrentBlog: (state, action) => {
       state.currentBlog = action.payload;
     },
-    increaseLikes: (state) => {
-      state.noOfLikes += 1;
-    },
-    decreaseLikes: (state) => {
-      state.noOfLikes -= 1;
-    },
     setCurrentPostComments: (state, action) => {
       state.currentPostComments = action.payload;
     },
-    updateCurrentPostComments: (state, action) => {
-      state.currentPostComments.push(action.payload);
-    }
+    setCurrentPostLikers: (state, action) => {
+      state.currentPostLikers = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -126,7 +119,6 @@ const blogSlice = createSlice({
         state.isError = false;
         state.currentBlog = action.payload.post;
         state.isCurrentBlogLiked = action.payload.isLiked;
-        state.noOfLikes = action.payload.numberOfLikes;
       })
 
       .addCase(getBlogById.rejected, (state, action) => {
@@ -153,11 +145,9 @@ const blogSlice = createSlice({
 
 export const {
   addBlog,
-  increaseLikes,
-  decreaseLikes,
   updateCurrentBlog,
   setCurrentPostComments,
-  updateCurrentPostComments
+  setCurrentPostLikers,
 } = blogSlice.actions;
 
 export default blogSlice.reducer;

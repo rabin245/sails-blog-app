@@ -6,12 +6,12 @@ export const getSinglePost = async (url) => {
 };
 
 export const likePost = async (id) => {
-  await axios.post(`/api/posts/${id}/like`);
+  const res = await axios.post(`/api/posts/${id}/like`);
   return res.data;
 };
 
 export const unlikePost = async (id) => {
-  await axios.post(`/api/posts/${id}/unlike`);
+  const res = await axios.post(`/api/posts/${id}/unlike`);
   return res.data;
 };
 

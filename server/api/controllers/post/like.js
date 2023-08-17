@@ -41,6 +41,7 @@ module.exports = {
 
       sails.sockets.broadcast(`blog-room-${postId}`, "post-liked", {
         message: "Post liked",
+        user: this.req.user,
       });
 
       return exits.success({ message: "Post liked." });

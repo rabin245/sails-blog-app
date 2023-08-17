@@ -1,5 +1,3 @@
-const { exits } = require("./send");
-
 module.exports = {
   friendlyName: "Join room",
 
@@ -49,7 +47,7 @@ module.exports = {
 
         console.log(
           "Socket joined room: " + sails.sockets.getId(this.req) +
-            " to chat-room",
+          " to chat-room",
         );
 
         return exits.success({
