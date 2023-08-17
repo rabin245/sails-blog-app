@@ -14,7 +14,10 @@ const LikesAndCommentsSection = ({
   handlePostUnlike,
   postLikers,
 }) => {
-  console.log("rendering likes and comments section", postLikers);
+  console.log("\n\nrendering likes and comments section");
+  console.log("postLikers: ", postLikers);
+  console.log("postComments: ", comments);
+
   const navigate = useNavigate();
 
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);

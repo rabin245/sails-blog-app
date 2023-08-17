@@ -19,10 +19,58 @@ import {
 } from "../../api/singlePostApi";
 import useSWR from "swr";
 import LikesAndCommentsSection from "./LikesAndCommentsSection";
+import {
+  commentOnPostOptions,
+  likePostOptions,
+  unlikePostOptions,
+} from "../../api/singlePostSWROptions";
 
 function SingleBlog({ io }) {
   const { id } = useParams();
   const dispatch = useDispatch();
+
+  const [isCommentBarOpen, setIsCommentBarOpen] = useState(false);
+
+  const user = useSelector(selectUser);
+
+  const {
+    isLoading,
+    error,
+    data: currentBlog,
+    mutate,
+  } = useSWR(`/api/posts/${id}`, getSinglePost, {
+    onError: (err) => {
+      console.log(err);
+    },
+    onSuccess: (data) => {
+      console.log(data);
+    },
+    revalidateOnFocus: false,
+  });
+
+  const blog = useMemo(() => {
+    if (currentBlog) {
+      return {
+        ...currentBlog?.post,
+        content: parseJSON(currentBlog?.post?.content),
+      };
+    }
+  }, [currentBlog]);
+
+  const postComments = useSelector((state) => state.blog.currentPostComments);
+
+  const postLikers = useSelector((state) => state.blog.currentPostLikers);
+
+  useEffect(() => {
+    if (currentBlog) {
+      console.log(
+        "running dispatches for comment and likers since currentBlog changed",
+        currentBlog
+      );
+      dispatch(setCurrentPostComments(currentBlog.post.comments));
+      dispatch(setCurrentPostLikers(currentBlog.post.likers));
+    }
+  }, [currentBlog]);
 
   useEffect(() => {
     joinSingleRoom(io, id).then((data) => {
@@ -53,8 +101,6 @@ function SingleBlog({ io }) {
       }, false);
     };
 
-    io.socket.on("post-liked", postLikedHandlerFunction);
-
     const postUnlikeHandlerFunction = (data) => {
       console.log("\n\nnew post unlike event");
       console.log(data);
@@ -80,8 +126,6 @@ function SingleBlog({ io }) {
       }, false);
     };
 
-    io.socket.on("post-unliked", postUnlikeHandlerFunction);
-
     const commentCreatedHandlerFunction = (data) => {
       console.log("\n\nnew comment created event");
       console.log(data);
@@ -100,6 +144,8 @@ function SingleBlog({ io }) {
       }, false);
     };
 
+    io.socket.on("post-liked", postLikedHandlerFunction);
+    io.socket.on("post-unliked", postUnlikeHandlerFunction);
     io.socket.on("comment-created", commentCreatedHandlerFunction);
 
     return () => {
@@ -116,49 +162,6 @@ function SingleBlog({ io }) {
     };
   }, []);
 
-  const [isCommentBarOpen, setIsCommentBarOpen] = useState(false);
-
-  const user = useSelector(selectUser);
-
-  const {
-    isLoading,
-    error,
-    data: currentBlog,
-    mutate,
-  } = useSWR(`/api/posts/${id}`, getSinglePost, {
-    onError: (err) => {
-      console.log(err);
-    },
-    onSuccess: (data) => {
-      console.log(data);
-    },
-    revalidateOnFocus: false,
-  });
-
-  useEffect(() => {
-    if (currentBlog) {
-      console.log(
-        "running dispatches for comment and likers since currentBlog changed",
-        currentBlog
-      );
-      dispatch(setCurrentPostComments(currentBlog.post.comments));
-      dispatch(setCurrentPostLikers(currentBlog.post.likers));
-    }
-  }, [currentBlog]);
-
-  const blog = useMemo(() => {
-    if (currentBlog) {
-      return {
-        ...currentBlog?.post,
-        content: parseJSON(currentBlog?.post?.content),
-      };
-    }
-  }, [currentBlog]);
-
-  const postComments = useSelector((state) => state.blog.currentPostComments);
-
-  const postLikers = useSelector((state) => state.blog.currentPostLikers);
-
   const commentOnPostMutation = useCallback(async (comment) => {
     const newComment = {
       createdAt: Date.now(),
@@ -171,45 +174,10 @@ function SingleBlog({ io }) {
     };
 
     try {
-      await mutate(commentOnPost(id, comment), {
-        optimisticData: (prev) => {
-          const newPost = {
-            ...prev,
-            post: {
-              ...prev.post,
-              comments: [...prev.post.comments, newComment],
-            },
-          };
-          return newPost;
-        },
-        rollbackOnError: true,
-        // not populating the cache from this mutate because
-        // the comment event sent from socket is broadcasted to all clients
-        // so handling the populating of cache in event handler function instead
-        // P.S. socket virtual requests were necessary to selectively not broadcast
-        // to the client who sent the request
-
-        // populateCache: (updatedPost, oldPost) => {
-        //   console.log(
-        //     "\n\nPopulate cache for comment mutation\n\n",
-        //     updatedPost,
-        //     oldPost
-        //   );
-        //   const newPost = {
-        //     ...oldPost,
-        //     post: {
-        //       ...oldPost.post,
-        //       comments: [...oldPost.post.comments, updatedPost.data],
-        //     },
-        //   };
-
-        //   console.log(newPost + "\n\n");
-
-        //   return newPost;
-        // },
-        populateCache: false,
-        revalidate: false,
-      });
+      await mutate(
+        commentOnPost(id, comment),
+        commentOnPostOptions(newComment)
+      );
     } catch (error) {
       console.log(error);
     }
@@ -222,36 +190,7 @@ function SingleBlog({ io }) {
     };
 
     try {
-      await mutate(likePost(id), {
-        optimisticData: (prev) => {
-          const newPost = {
-            ...prev,
-            post: {
-              ...prev.post,
-              likers: [...prev.post.likers, newLiker],
-            },
-            numberOfLikes: prev.numberOfLikes + 1,
-            isLiked: true,
-          };
-
-          return newPost;
-        },
-        rollbackOnError: true,
-        populateCache: (updatedPost, oldPost) => {
-          const newPost = {
-            ...oldPost,
-            post: {
-              ...oldPost.post,
-              likers: [...oldPost.post.likers, newLiker],
-            },
-            numberOfLikes: oldPost.numberOfLikes + 1,
-            isLiked: true,
-          };
-
-          return newPost;
-        },
-        revalidate: false,
-      });
+      await mutate(likePost(id), likePostOptions(newLiker));
     } catch (error) {
       console.log(error);
     }
@@ -259,38 +198,7 @@ function SingleBlog({ io }) {
 
   const unlikePostMutation = useCallback(async () => {
     try {
-      await mutate(unlikePost(id), {
-        optimisticData: (prev) => {
-          const newPost = {
-            ...prev,
-            post: {
-              ...prev.post,
-              likers: prev.post.likers.filter((liker) => liker.id != user.id),
-            },
-            numberOfLikes: prev.numberOfLikes - 1,
-            isLiked: false,
-          };
-
-          return newPost;
-        },
-        rollbackOnError: true,
-        populateCache: (updatedPost, oldPost) => {
-          const newPost = {
-            ...oldPost,
-            post: {
-              ...oldPost.post,
-              likers: oldPost.post.likers.filter(
-                (liker) => liker.id != user.id
-              ),
-            },
-            numberOfLikes: oldPost.numberOfLikes - 1,
-            isLiked: false,
-          };
-
-          return newPost;
-        },
-        revalidate: false,
-      });
+      await mutate(unlikePost(id), unlikePostOptions(user.id));
     } catch (error) {
       console.log(error);
     }

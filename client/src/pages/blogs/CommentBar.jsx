@@ -47,13 +47,14 @@ function CommentBar({
   );
 }
 
-export function WriteComment({ name, onCommentSubmit }) {
+function WriteComment({ name, onCommentSubmit }) {
   const [message, setMessage] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (message.length > 0) {
-      const res = await onCommentSubmit(message);
+      await onCommentSubmit(message);
       setMessage("");
     }
   };
