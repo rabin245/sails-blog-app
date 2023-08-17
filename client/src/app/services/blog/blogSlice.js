@@ -48,12 +48,6 @@ const blogSlice = createSlice({
     addBlog: (state, action) => {
       state.blogs.push(action.payload);
     },
-    setCurrentPostComments: (state, action) => {
-      state.currentPostComments = action.payload;
-    },
-    setCurrentPostLikers: (state, action) => {
-      state.currentPostLikers = action.payload;
-    },
   },
   extraReducers: (builder) => {
     builder
@@ -90,8 +84,6 @@ const blogSlice = createSlice({
 
 export const {
   addBlog,
-  setCurrentPostComments,
-  setCurrentPostLikers,
 } = blogSlice.actions;
 
 export default blogSlice.reducer;

@@ -6,10 +6,6 @@ import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import CommentBar from "./CommentBar";
 import ChatIcon from "../../component/chat/ChatIcon";
 import UserAvatar from "../../component/UserAvatar";
-import {
-  setCurrentPostComments,
-  setCurrentPostLikers,
-} from "../../app/services/blog/blogSlice";
 import { joinSingleRoom, leaveSingleRoom } from "../../utils/blogs";
 import {
   commentOnPost,
@@ -57,18 +53,15 @@ function SingleBlog({ io }) {
     }
   }, [currentBlog]);
 
-  const postComments = useSelector((state) => state.blog.currentPostComments);
-
-  const postLikers = useSelector((state) => state.blog.currentPostLikers);
-
-  useEffect(() => {
+  const postComments = useMemo(() => {
     if (currentBlog) {
-      console.log(
-        "running dispatches for comment and likers since currentBlog changed",
-        currentBlog
-      );
-      dispatch(setCurrentPostComments(currentBlog.post.comments));
-      dispatch(setCurrentPostLikers(currentBlog.post.likers));
+      return currentBlog.post.comments;
+    }
+  }, [currentBlog]);
+
+  const postLikers = useMemo(() => {
+    if (currentBlog) {
+      return currentBlog.post.likers;
     }
   }, [currentBlog]);
 
