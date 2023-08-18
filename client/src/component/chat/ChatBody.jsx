@@ -1,26 +1,38 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router";
-import { getChat, postChat } from "../../utils/chat";
 import { selectUser } from "../../app/services/auth/authSlice";
 import { markAsRead } from "../../app/services/chat/chatSlice";
 import { useDispatch, useSelector } from "react-redux";
+import useSWR from "swr";
+import { chatConversationUrl, getChat, postChat } from "../../api/chatApi";
+import { postChatOptions } from "../../api/chatSWROptions";
 
 function Chatbody({ io }) {
   const id = useParams().id;
   const user = useSelector(selectUser);
   const dispatch = useDispatch();
+  const chatBodyRef = useRef(null);
 
-  const [chats, setChats] = useState([]);
+  const {
+    isLoading,
+    error,
+    data: { conversation: chats } = {},
+    mutate,
+  } = useSWR(chatConversationUrl + id, getChat, {
+    onError: (err) => {
+      console.log(err);
+    },
+    onSuccess: (data) => {
+      console.log(data);
+    },
+  });
 
   const contactedUsers = useSelector((state) => state.chat.contactedUsers);
 
   const currentContact = useMemo(() => {
     const contact = contactedUsers.find((person) => person.contact.id == id);
-    console.log("contact", contact);
-    return contact ? contact.contact.fullName : "";
+    return contact;
   }, [contactedUsers, id]);
-
-  const chatBodyRef = useRef(null);
 
   const callMarkAsRead = useCallback(() => {
     dispatch(markAsRead(id));
@@ -29,21 +41,26 @@ function Chatbody({ io }) {
   useEffect(() => {
     console.log("running the useEffect of ChatBody");
 
-    const handlerFunction = (data) => {
+    const newChatMessageHandler = (data) => {
+      console.log("\n\n\nnew chat message event", data);
       if (
         (data.sender.id === user.id && data.receiver.id == id) ||
         (data.sender.id == id && data.receiver.id === user.id)
       ) {
-        setChats((prev) => [...prev, data]);
+        mutate((oldData) => {
+          return {
+            conversation: [...oldData.conversation, data],
+          };
+        }, false);
       }
     };
 
-    io.socket.on(`chat`, handlerFunction);
+    io.socket.on(`chat`, newChatMessageHandler);
 
     chatBodyRef.current.addEventListener("click", callMarkAsRead);
 
     return () => {
-      io.socket.off(`chat`, handlerFunction);
+      io.socket.off(`chat`, newChatMessageHandler);
 
       if (chatBodyRef.current) {
         chatBodyRef.current.removeEventListener("click", callMarkAsRead);
@@ -53,11 +70,61 @@ function Chatbody({ io }) {
 
   useEffect(() => {
     callMarkAsRead();
-    getChat(id).then((data) => {
-      setChats(data.conversation);
-    });
   }, [id]);
 
+  const sendChatMessageMutation = useCallback(
+    async (message) => {
+      const newChat = {
+        createdAt: Date.now(),
+        message,
+        readStatus: false,
+        sender: user,
+        receiver: currentContact.contact,
+      };
+
+      try {
+        await mutate(postChat(id, message), postChatOptions(newChat));
+      } catch (error) {
+        console.error(error);
+      }
+    },
+    [currentContact, id]
+  );
+
+  if (isLoading) {
+    return (
+      <div className="w-4/5" ref={chatBodyRef}>
+        <ChatNavbar currentContact={currentContact} />
+
+        <div className="flex flex-col justify-between bg-slate-800 min-h-[calc(100vh-6.5rem)]">
+          <div className="max-h-[calc(100vh-10rem)] overflow-y-auto px-3 py-4 scrollbar-thin scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-500 scrollbar-thumb-rounded-lg">
+            <div>Loading...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="w-4/5" ref={chatBodyRef}>
+        <ChatNavbar currentContact={currentContact} />
+
+        <div className="flex flex-col justify-between bg-slate-800 min-h-[calc(100vh-6.5rem)]">
+          <div className="max-h-[calc(100vh-10rem)] overflow-y-auto px-3 py-4 scrollbar-thin scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-500 scrollbar-thumb-rounded-lg">
+            <div className="text-red-500">
+              <h1 className="text-xl text-center">Error</h1>
+              <p>{error.message}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  console.log("currentContact", currentContact);
+  console.log("user", user);
+  console.log("chats", chats);
   return (
     <div className="w-4/5" ref={chatBodyRef}>
       <ChatNavbar currentContact={currentContact} />
@@ -73,7 +140,7 @@ function Chatbody({ io }) {
               </div>
             ))}
         </div>
-        <MessageSendingForm id={id} callMarkAsRead={callMarkAsRead} />
+        <MessageSendingForm handleMessageSend={sendChatMessageMutation} />
       </div>
     </div>
   );
@@ -89,7 +156,9 @@ export const ChatNavbar = ({ currentContact }) => {
           className="w-8 h-8 rounded-full"
         />
 
-        <h1 className="text-lg text-white font-bold">{currentContact}</h1>
+        <h1 className="text-lg text-white font-bold">
+          {currentContact ? currentContact.contact.fullName : ""}
+        </h1>
       </div>
     </div>
   );
@@ -105,9 +174,13 @@ export const RecievedMessage = ({ chat }) => {
       </div>
 
       <div className="flex flex-col px-2 py-1 gap-1">
-        <div className="flex items-center text-gray-400 gap-3 text-xs">
+        <div className="flex items-center text-gray-400 gap-2 text-xs">
           <p>{chat.sender.fullName}</p>
-          <p>{new Date(chat.createdAt).toLocaleTimeString()}</p>
+          <p>
+            {new Date(chat.createdAt).toLocaleTimeString([], {
+              timeStyle: "short",
+            })}
+          </p>
         </div>
 
         <p className="bg-gray-600 px-2 py-1 rounded-xl w-fit break-words">
@@ -132,7 +205,7 @@ export const SentMessage = ({ chat }) => {
   );
 };
 
-export const MessageSendingForm = ({ id, callMarkAsRead }) => {
+export const MessageSendingForm = ({ handleMessageSend }) => {
   const [messsage, setMesssage] = useState("");
 
   const handleChange = (e) => {
@@ -141,9 +214,8 @@ export const MessageSendingForm = ({ id, callMarkAsRead }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const res = await postChat(id, messsage);
-
     setMesssage("");
+    await handleMessageSend(messsage);
   };
   return (
     <div className="h-14">

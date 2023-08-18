@@ -11,7 +11,7 @@ export default function Chat({ io }) {
   useEffect(() => {
     joinRoom(io, token)
       .then((data) => {
-        console.log(data);
+        // console.log(data);
       })
       .catch((err) => {
         console.log(err);
@@ -20,7 +20,7 @@ export default function Chat({ io }) {
     return () => {
       leaveRoom(io, token)
         .then((data) => {
-          console.log(data);
+          // console.log(data);
         })
         .catch((err) => {
           console.log(err);

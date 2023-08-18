@@ -1,6 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 import { parseJSON } from "../../utils/parseJson";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { selectUser } from "../../app/services/auth/authSlice";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import CommentBar from "./CommentBar";
@@ -23,7 +23,6 @@ import {
 
 function SingleBlog({ io }) {
   const { id } = useParams();
-  const dispatch = useDispatch();
 
   const [isCommentBarOpen, setIsCommentBarOpen] = useState(false);
 
