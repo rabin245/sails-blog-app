@@ -15,22 +15,13 @@ const markAsRead = createAsyncThunk("chatApi/markAsRead", async (id) => {
 const getContactedUsersList = createAsyncThunk(
   "chatApi/getContactedUsersList",
   async (id = null) => {
-    const response = await axios.get("/api/chat/person-contacts");
-
-    if (id) {
-      const contacts = response.data.contacts;
-      const isContactExist = contacts.some(
-        (contact) => contact.contact.id == id
-      );
-
-      if (!isContactExist) {
-        const newContact = await axios.get(`/api/user/${id}`);
-        response.data.contacts = [
-          ...response.data.contacts,
-          { contact: newContact.data.user, count: 0 },
-        ];
-      }
+    let response;
+    if (!id) {
+      response = await axios.get("/api/chat/contact-list");
+    } else {
+      response = await axios.get(`/api/chat/contact-list/?id=${id}`);
     }
+
     console.log(response);
     return response.data;
   }

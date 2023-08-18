@@ -3,13 +3,32 @@ module.exports = {
 
   description: "Get the list of people the user has contacted",
 
-  inputs: {},
+  inputs: {
+    id: {
+      type: "number",
+      description: "The optional id of the contacted user to look up.",
+    },
+  },
 
-  exits: {},
+  exits: {
+    success: {
+      description: "User found and retrieved successfully.",
+      responseType: "ok",
+    },
+    notFound: {
+      description: "User with the specified ID not found.",
+      responseType: "notFound",
+    },
+    error: {
+      description: "Something went wrong.",
+      responseType: "badRequest",
+    },
+  },
 
   fn: async function (inputs, exits) {
     try {
       const userId = this.req.user.id;
+      const optionalContactId = inputs.id || null;
 
       const contacts = await Chat.find({
         where: {
@@ -25,18 +44,20 @@ module.exports = {
         select: ["sender", "receiver"],
       });
 
-      const contactsArray = [];
-
-      for (let i = 0; i < contacts.length; i++) {
-        const contact = contacts[i];
+      const contactsArray = contacts.map((contact) => {
         if (contact.sender === userId) {
-          contactsArray.push(contact.receiver);
+          return contact.receiver;
         } else {
-          contactsArray.push(contact.sender);
+          return contact.sender;
         }
-      }
+      });
 
       const uniqueContacts = [...new Set(contactsArray)];
+
+      // If optionalContactId is provided and not in uniqueContacts, add it
+      if (optionalContactId && !uniqueContacts.includes(optionalContactId)) {
+        uniqueContacts.push(optionalContactId);
+      }
 
       // Fetch unread message counts for each contact
       const contacedPerson = await Promise.all(
