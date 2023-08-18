@@ -12,13 +12,13 @@ function Chatbody({ io }) {
 
   const [chats, setChats] = useState([]);
 
-  const contactedPerson = useSelector((state) => state.chat.contactedPerson);
+  const contactedUsers = useSelector((state) => state.chat.contactedUsers);
 
   const currentContact = useMemo(() => {
-    const contact = contactedPerson.find((person) => person.contact.id == id);
+    const contact = contactedUsers.find((person) => person.contact.id == id);
     console.log("contact", contact);
     return contact ? contact.contact.fullName : "";
-  }, [contactedPerson]);
+  }, [contactedUsers, id]);
 
   const chatBodyRef = useRef(null);
 

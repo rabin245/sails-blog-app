@@ -2,13 +2,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link, useMatch } from "react-router-dom";
 import { memo, useEffect } from "react";
 import {
-  getContactedPerson,
-  updateContactedPerson,
+  getContactedUsersList,
+  updateContactedUsersList,
 } from "../../app/services/chat/chatSlice";
 
 function ChatSidebar({ io }) {
   const dispatch = useDispatch();
-  const { contactedPerson, isLoading, isError } = useSelector(
+  const { contactedUsers, isLoading, isError } = useSelector(
     (state) => state.chat
   );
 
@@ -18,14 +18,14 @@ function ChatSidebar({ io }) {
   useEffect(() => {
     const handleUnreadCountUpdate = (data) => {
       console.log("unreadCount", data);
-      dispatch(updateContactedPerson(data));
+      dispatch(updateContactedUsersList(data));
     };
     io.socket.on("unreadCount", handleUnreadCountUpdate);
 
     if (match) {
-      dispatch(getContactedPerson(id));
+      dispatch(getContactedUsersList(id));
     } else {
-      dispatch(getContactedPerson());
+      dispatch(getContactedUsersList());
     }
 
     return () => {
@@ -52,13 +52,13 @@ function ChatSidebar({ io }) {
     );
   }
 
-  console.log("contactedPerson", contactedPerson);
+  console.log("contacted users list", contactedUsers);
 
   return layout(
     <>
-      {contactedPerson.length != 0 ? (
+      {contactedUsers.length != 0 ? (
         <div className="flex flex-col my-1 gap-1 overflow-y-auto h-[calc(100%-3.5rem)] scrollbar-thin scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-500 scrollbar-thumb-rounded-lg">
-          {contactedPerson.map((person, index) => (
+          {contactedUsers.map((person, index) => (
             <ChatCard
               key={index}
               person={person.contact}

@@ -12,8 +12,8 @@ const markAsRead = createAsyncThunk("chatApi/markAsRead", async (id) => {
   return response.data;
 });
 
-const getContactedPerson = createAsyncThunk(
-  "chatApi/getContactedPerson",
+const getContactedUsersList = createAsyncThunk(
+  "chatApi/getContactedUsersList",
   async (id = null) => {
     const response = await axios.get("/api/chat/person-contacts");
 
@@ -46,26 +46,25 @@ const chatSlice = createSlice({
   name: "chat",
   initialState: {
     chats: [],
-    contactedPerson: [],
+    contactedUsers: [],
     sendChatStatus: "idle",
     isLoading: false,
     isError: false,
-    // noOfUnreadmesg: 0,
   },
   reducers: {
-    updateContactedPerson: (state, action) => {
+    updateContactedUsersList: (state, action) => {
       const { contact, count } = action.payload;
 
-      const indexToUpdate = state.contactedPerson.findIndex(
+      const indexToUpdate = state.contactedUsers.findIndex(
         (contactInfo) => contactInfo.contact.id == contact.id
       );
 
       console.log(indexToUpdate);
 
       if (indexToUpdate !== -1) {
-        state.contactedPerson[indexToUpdate].count = count;
+        state.contactedUsers[indexToUpdate].count = count;
       } else {
-        state.contactedPerson.push({ contact, count });
+        state.contactedUsers.push({ contact, count });
       }
     },
   },
@@ -85,18 +84,17 @@ const chatSlice = createSlice({
         state.isLoading = false;
         state.isError = true;
       })
-      .addCase(getContactedPerson.pending, (state) => {
+      .addCase(getContactedUsersList.pending, (state) => {
         state.isLoading = true;
         state.isError = false;
-        state.contactedPerson = [];
+        state.contactedUsers = [];
       })
-      .addCase(getContactedPerson.fulfilled, (state, action) => {
+      .addCase(getContactedUsersList.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isError = false;
-        state.contactedPerson = action.payload.contacts;
-        // state.noOfUnreadmesg = action.payload.unreadCounts.count;
+        state.contactedUsers = action.payload.contacts;
       })
-      .addCase(getContactedPerson.rejected, (state) => {
+      .addCase(getContactedUsersList.rejected, (state) => {
         state.isLoading = false;
         state.isError = true;
       })
@@ -123,12 +121,12 @@ const chatSlice = createSlice({
 
         const { sender } = action.payload;
 
-        const indexToUpdate = state.contactedPerson.findIndex(
+        const indexToUpdate = state.contactedUsers.findIndex(
           (contactInfo) => contactInfo.contact.id == sender
         );
 
         if (indexToUpdate !== -1) {
-          state.contactedPerson[indexToUpdate].count = 0;
+          state.contactedUsers[indexToUpdate].count = 0;
         }
       })
       .addCase(markAsRead.rejected, (state) => {
@@ -137,7 +135,7 @@ const chatSlice = createSlice({
   },
 });
 
-export const { updateContactedPerson } = chatSlice.actions;
+export const { updateContactedUsersList } = chatSlice.actions;
 
-export { getChats, getContactedPerson, sendChat, markAsRead };
+export { getChats, getContactedUsersList, sendChat, markAsRead };
 export default chatSlice.reducer;
