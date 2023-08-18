@@ -3,7 +3,7 @@ export const markAsReadOptions = (id) => ({
     const newContactList = {
       contacts: oldData.contacts.map((contactInfo) => {
         if (contactInfo.contact.id == id) {
-          return { ...contactInfo, cound: 0 };
+          return { ...contactInfo, count: 0 };
         }
         return contactInfo;
       }),
@@ -17,7 +17,7 @@ export const markAsReadOptions = (id) => ({
     const newContactList = {
       contacts: oldData.contacts.map((contactInfo) => {
         if (contactInfo.contact.id == newData.sender) {
-          return { ...contactInfo, cound: 0 };
+          return { ...contactInfo, count: 0 };
         }
         return contactInfo;
       }),

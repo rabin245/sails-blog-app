@@ -1,16 +1,17 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router";
 import { selectUser } from "../../app/services/auth/authSlice";
-import { markAsRead } from "../../app/services/chat/chatSlice";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import useSWR from "swr";
 import { chatConversationUrl, getChat, postChat } from "../../api/chatApi";
 import { postChatOptions } from "../../api/chatSWROptions";
+import { markAsRead } from "../../api/contactsApi";
+import { markAsReadOptions } from "../../api/contactsSWROptions";
+import useContactList from "../../hooks/useContactList";
 
 function Chatbody({ io }) {
   const id = useParams().id;
   const user = useSelector(selectUser);
-  const dispatch = useDispatch();
   const chatBodyRef = useRef(null);
 
   const {
@@ -27,16 +28,15 @@ function Chatbody({ io }) {
     },
   });
 
-  const contactedUsers = useSelector((state) => state.chat.contactedUsers);
+  const { contacts: contactedUsers, mutate: mutateContactsList } =
+    useContactList({ id });
 
   const currentContact = useMemo(() => {
-    const contact = contactedUsers.find((person) => person.contact.id == id);
-    return contact;
+    if (contactedUsers) {
+      const contact = contactedUsers.find((person) => person.contact.id == id);
+      return contact;
+    }
   }, [contactedUsers, id]);
-
-  const callMarkAsRead = useCallback(() => {
-    dispatch(markAsRead(id));
-  }, [dispatch, id]);
 
   useEffect(() => {
     console.log("running the useEffect of ChatBody");
@@ -57,19 +57,22 @@ function Chatbody({ io }) {
 
     io.socket.on(`chat`, newChatMessageHandler);
 
-    chatBodyRef.current.addEventListener("click", callMarkAsRead);
-
     return () => {
       io.socket.off(`chat`, newChatMessageHandler);
-
-      if (chatBodyRef.current) {
-        chatBodyRef.current.removeEventListener("click", callMarkAsRead);
-      }
     };
   }, []);
 
   useEffect(() => {
-    callMarkAsRead();
+    const handleMarkAsRead = async (e) => {
+      await markAsReadMutation(id);
+    };
+    chatBodyRef.current.addEventListener("click", handleMarkAsRead);
+
+    return () => {
+      if (chatBodyRef.current) {
+        chatBodyRef.current.removeEventListener("click", handleMarkAsRead);
+      }
+    };
   }, [id]);
 
   const sendChatMessageMutation = useCallback(
@@ -90,6 +93,17 @@ function Chatbody({ io }) {
     },
     [currentContact, id]
   );
+
+  const markAsReadMutation = useCallback(async (contactId) => {
+    try {
+      await mutateContactsList(
+        markAsRead(contactId),
+        markAsReadOptions(contactId)
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  }, []);
 
   if (isLoading) {
     return (
@@ -123,7 +137,6 @@ function Chatbody({ io }) {
   }
 
   console.log("currentContact", currentContact);
-  console.log("user", user);
   console.log("chats", chats);
   return (
     <div className="w-4/5" ref={chatBodyRef}>
@@ -146,7 +159,7 @@ function Chatbody({ io }) {
   );
 }
 
-export const ChatNavbar = ({ currentContact }) => {
+const ChatNavbar = ({ currentContact }) => {
   return (
     <div className="flex items-center justify-between h-12 border-b border-gray-950 bg-slate-950">
       <div className="flex gap-2 items-center px-3">
@@ -164,7 +177,7 @@ export const ChatNavbar = ({ currentContact }) => {
   );
 };
 
-export const RecievedMessage = ({ chat }) => {
+const RecievedMessage = ({ chat }) => {
   return (
     <div className="flex w-1/2">
       <div className="flex py-2 translate-y-2 ">
@@ -191,7 +204,7 @@ export const RecievedMessage = ({ chat }) => {
   );
 };
 
-export const SentMessage = ({ chat }) => {
+const SentMessage = ({ chat }) => {
   return (
     <div className="flex justify-end ">
       <div className="flex w-1/2 justify-end">
@@ -205,7 +218,7 @@ export const SentMessage = ({ chat }) => {
   );
 };
 
-export const MessageSendingForm = ({ handleMessageSend }) => {
+const MessageSendingForm = ({ handleMessageSend }) => {
   const [messsage, setMesssage] = useState("");
 
   const handleChange = (e) => {
