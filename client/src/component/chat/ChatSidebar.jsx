@@ -16,23 +16,22 @@ function ChatSidebar({ io }) {
   const id = match?.params?.id;
 
   useEffect(() => {
-    io.socket.on("unreadCount", (data) => {
+    const handleUnreadCountUpdate = (data) => {
       console.log("unreadCount", data);
       dispatch(updateContactedPerson(data));
-    });
-
-    // io.socket.on("mark-as-read", (data) => {
-    //   console.log("mark-as-read", data);
-    //   const { sender } = data;
-    //   dispatch(updateContactedPerson({ contact: { id: sender }, count: 0 }));
-    // });
+    };
+    io.socket.on("unreadCount", handleUnreadCountUpdate);
 
     if (match) {
       dispatch(getContactedPerson(id));
     } else {
       dispatch(getContactedPerson());
     }
-  }, [dispatch, match]);
+
+    return () => {
+      io.socket.off("unreadCount", handleUnreadCountUpdate);
+    };
+  }, [dispatch]);
 
   const layout = (content) => (
     <div className="bg-slate-900 w-1/5 z-10 shadow-2xl h-full">
