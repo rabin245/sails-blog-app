@@ -46,7 +46,7 @@ function ChatSidebar({ io }) {
   if (error) {
     return layout(
       <h1 className="text-md text-gray-500 font-bold block">
-        Oops! Something went wrong.
+        Oops! Something went wrong. {error.response.data.message}
       </h1>
     );
   }

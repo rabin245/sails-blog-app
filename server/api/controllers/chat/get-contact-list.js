@@ -17,7 +17,7 @@ module.exports = {
     },
     notFound: {
       description: "User with the specified ID not found.",
-      responseType: "notFound",
+      statusCode: 404,
     },
     error: {
       description: "Something went wrong.",
@@ -63,6 +63,13 @@ module.exports = {
       const contacedPerson = await Promise.all(
         uniqueContacts.map(async (contactId) => {
           const contact = await User.findOne({ id: contactId });
+
+          if (!contact) {
+            return exits.notFound({
+              message: "User not found",
+            });
+          }
+
           const count = await Chat.count({
             sender: contactId,
             receiver: userId,

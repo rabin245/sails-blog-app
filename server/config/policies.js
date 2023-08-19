@@ -35,6 +35,5 @@ module.exports.policies = {
   "chat/send": ["is-logged-in", "receiver-exists"],
   "chat/join-room": "is-logged-in",
   "chat/leave-room": "is-logged-in",
-  "user/get-user": "is-logged-in",
   "chat/mark-as-read": "is-logged-in",
 };
