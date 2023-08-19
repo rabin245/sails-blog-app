@@ -1,16 +1,19 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { convertToRaw, EditorState } from "draft-js";
 import { Editor } from "react-draft-wysiwyg";
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
-import { createBlog, selectIsLoading } from "../../app/services/blog/blogSlice";
-import { useDispatch, useSelector } from "react-redux";
+import useBlogsList from "../../hooks/useBlogsList";
+import { createBlog } from "../../api/postsApi";
+import { useSelector } from "react-redux";
+import { selectUser } from "../../app/services/auth/authSlice";
+import { createBlogOptions } from "../../api/postsSWROptions";
 
 export default function Blog() {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const user = useSelector(selectUser);
 
-  const isLoading = useSelector(selectIsLoading);
+  const { mutate } = useBlogsList();
 
   const [blog, setBlog] = useState({
     title: "",
@@ -22,6 +25,19 @@ export default function Blog() {
   const [editorState, setEditorState] = useState(() =>
     EditorState.createEmpty()
   );
+
+  const createBlogMutation = useCallback(async (newBlog) => {
+    const newPost = {
+      ...newBlog,
+      createdAt: Date.now(),
+      author: user,
+    };
+    try {
+      await mutate(createBlog(newBlog), createBlogOptions(newPost));
+    } catch (error) {
+      console.log(error);
+    }
+  });
 
   const handleChange = (e) => {
     setBlog({ ...blog, [e.target.name]: e.target.value });
@@ -39,17 +55,14 @@ export default function Blog() {
 
       const contentStateJSON = JSON.stringify(convertToRaw(contentState));
 
-      const res = await dispatch(createBlog({
+      createBlogMutation({
         title: blog.title,
         content: contentStateJSON,
-      }));
+      });
 
-      if (!res.error) {
-        navigate("/");
-      }
+      navigate("/");
     } catch (err) {
       console.log(err);
-      setError(err.message);
     }
   };
 
@@ -98,7 +111,7 @@ export default function Blog() {
             type="submit"
             className="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-400"
           >
-            {isLoading ? "Loading..." : "Create"}
+            Create
           </button>
         </form>
       </div>

@@ -1,42 +1,29 @@
 import { memo, useEffect } from "react";
 import BlogCard from "../../component/blog/BlogCard";
-import { useDispatch, useSelector } from "react-redux";
-import {
-  addBlog,
-  getBlogs,
-  selectBlogs,
-  selectError,
-  selectIsError,
-  selectIsLoading,
-} from "../../app/services/blog/blogSlice";
 import ChatIcon from "../../component/chat/ChatIcon";
 import { joinRoom, leaveRoom } from "../../utils/blogs";
+import useBlogsList from "../../hooks/useBlogsList";
 
 function Blogs({ io }) {
-  const dispatch = useDispatch();
-
-  const blogs = useSelector(selectBlogs);
-  const isLoading = useSelector(selectIsLoading);
-  const isError = useSelector(selectIsError);
-  const error = useSelector(selectError);
+  const { isLoading, error, blogs, mutate } = useBlogsList();
 
   useEffect(() => {
     joinRoom(io).then((data) => {
-      console.log(data);
+      // console.log(data);
     });
 
     const handlerFunction = ({ post }) => {
-      console.log("new post", post);
-      dispatch(addBlog(post));
+      console.log("new post event", post);
+      mutate((oldData) => ({
+        posts: [...oldData.posts, post],
+      }));
     };
 
     io.socket.on("new-post", handlerFunction);
 
-    dispatch(getBlogs());
-
     return () => {
       leaveRoom(io).then((data) => {
-        console.log(data);
+        // console.log(data);
       });
 
       io.socket.off("new-post", handlerFunction);
@@ -61,7 +48,7 @@ function Blogs({ io }) {
     return layout(<div>Loading...</div>);
   }
 
-  if (isError) {
+  if (error) {
     return layout(
       <div className="text-red-500">
         <h1 className="text-xl text-center">Error</h1>
