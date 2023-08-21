@@ -1,6 +1,6 @@
 import { AiOutlineClose } from "react-icons/ai";
 import CommentCard from "../../component/blog/CommentCard";
-import { useState, memo } from "react";
+import { useState, memo, useRef, useEffect } from "react";
 
 function CommentBar({
   toggleCommentBar,
@@ -11,11 +11,37 @@ function CommentBar({
 }) {
   console.log("\n\npost comments ", postComments, "\n\n");
 
+  const commentBarRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        isCommentBarOpen &&
+        commentBarRef.current &&
+        !commentBarRef.current.contains(event.target)
+      ) {
+        toggleCommentBar();
+      }
+    };
+
+    if (isCommentBarOpen) {
+      // Attach the event listener after a short delay
+      const timer = setTimeout(() => {
+        document.addEventListener("click", handleClickOutside);
+      }, 200);
+      return () => {
+        clearTimeout(timer);
+        document.removeEventListener("click", handleClickOutside);
+      };
+    }
+  }, [isCommentBarOpen]);
+
   return (
     <div
       className={`${
         isCommentBarOpen ? "opacity-100 right-0" : "opacity-0 right-[-100%] "
       } px-5 fixed top-0 bottom-0  bg-slate-800 shadow-lg w-96 z-30 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-500 transition-all duration-300 pt-20 `}
+      ref={commentBarRef}
     >
       <div className="flex items-center justify-between">
         <h1 className="text-2xl">Responses</h1>
