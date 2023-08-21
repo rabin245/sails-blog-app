@@ -1,38 +1,36 @@
-import { useDispatch, useSelector } from "react-redux";
 import { Link, useMatch } from "react-router-dom";
 import { memo, useEffect } from "react";
-import {
-  getContactedPerson,
-  updateContactedPerson,
-} from "../../app/services/chat/chatSlice";
+import useContactList from "../../hooks/useContactList";
 
 function ChatSidebar({ io }) {
-  const dispatch = useDispatch();
-  const { contactedPerson, isLoading, isError } = useSelector(
-    (state) => state.chat
-  );
-
   const match = useMatch("/chat/:id");
   const id = match?.params?.id;
 
+  const { isLoading, error, contacts, mutate } = useContactList({ id });
+
   useEffect(() => {
-    io.socket.on("unreadCount", (data) => {
-      console.log("unreadCount", data);
-      dispatch(updateContactedPerson(data));
-    });
+    const handleUnreadCountUpdate = (data) => {
+      console.log("\n\nunreadCount event", data);
+      mutate((oldData) => {
+        const indexToUpdate = oldData.contacts.findIndex(
+          (contactInfo) => contactInfo.contact.id == data.contact.id
+        );
 
-    // io.socket.on("mark-as-read", (data) => {
-    //   console.log("mark-as-read", data);
-    //   const { sender } = data;
-    //   dispatch(updateContactedPerson({ contact: { id: sender }, count: 0 }));
-    // });
+        if (indexToUpdate != -1) {
+          const newData = { ...oldData };
+          newData.contacts[indexToUpdate].count = data.count;
+          return newData;
+        } else {
+          return { contacts: [...oldData.contacts, { ...data }] };
+        }
+      }, true);
+    };
+    io.socket.on("unreadCount", handleUnreadCountUpdate);
 
-    if (match) {
-      dispatch(getContactedPerson(id));
-    } else {
-      dispatch(getContactedPerson());
-    }
-  }, [dispatch, match]);
+    return () => {
+      io.socket.off("unreadCount", handleUnreadCountUpdate);
+    };
+  }, []);
 
   const layout = (content) => (
     <div className="bg-slate-900 w-1/5 z-10 shadow-2xl h-full">
@@ -45,21 +43,21 @@ function ChatSidebar({ io }) {
 
   if (isLoading) return layout(<h1>Loading...</h1>);
 
-  if (isError) {
+  if (error) {
     return layout(
       <h1 className="text-md text-gray-500 font-bold block">
-        Oops! Something went wrong.
+        Oops! Something went wrong. {error.response.data.message}
       </h1>
     );
   }
 
-  console.log("contactedPerson", contactedPerson);
+  console.log("contacted users list", contacts);
 
   return layout(
     <>
-      {contactedPerson.length != 0 ? (
+      {contacts.length != 0 ? (
         <div className="flex flex-col my-1 gap-1 overflow-y-auto h-[calc(100%-3.5rem)] scrollbar-thin scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-500 scrollbar-thumb-rounded-lg">
-          {contactedPerson.map((person, index) => (
+          {contacts.map((person, index) => (
             <ChatCard
               key={index}
               person={person.contact}

@@ -1,19 +1,13 @@
-const { exits } = require("./send");
-
 module.exports = {
-  friendlyName: "Join room",
+  friendlyName: "Join chat room",
 
-  description: "",
+  description: "Join the chat room.",
 
   inputs: {},
 
   exits: {
     success: {
       description: "All done.",
-    },
-    notLoggedIn: {
-      description: "User is not logged in",
-      responseType: "unauthorized",
     },
     error: {
       description: "Something went wrong",
@@ -29,15 +23,7 @@ module.exports = {
         });
       }
 
-      const token = this.req.headers.authorization;
-
-      if (!token) {
-        return exits.notLoggedIn({
-          message: "You are not logged in. Missing token.",
-        });
-      }
-
-      const user = await sails.helpers.getUserFromToken(token);
+      const user = this.req.user;
 
       sails.sockets.join(this.req, `user-${user.id}`, (err) => {
         if (err) {
@@ -48,8 +34,9 @@ module.exports = {
         }
 
         console.log(
-          "Socket joined room: " + sails.sockets.getId(this.req) +
-            " to chat-room",
+          "Socket joined room: " +
+            sails.sockets.getId(this.req) +
+            " to chat-room"
         );
 
         return exits.success({
@@ -59,6 +46,7 @@ module.exports = {
     } catch (error) {
       return exits.error({
         message: "Something went wrong",
+        error,
       });
     }
   },

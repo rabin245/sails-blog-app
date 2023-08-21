@@ -1,7 +1,7 @@
 module.exports = {
-  friendlyName: "Send",
+  friendlyName: "Send chat message",
 
-  description: "Send chat.",
+  description: "Send a chat message to another user.",
 
   inputs: {
     receiverId: {

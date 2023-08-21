@@ -1,20 +1,20 @@
 import { AiOutlineClose } from "react-icons/ai";
 import CommentCard from "../../component/blog/CommentCard";
-import { useState } from "react";
+import { useState, memo } from "react";
 
-export default function CommentBar({
+function CommentBar({
   toggleCommentBar,
   isCommentBarOpen,
   postComments,
   user,
   onCommentSubmit,
 }) {
-  console.log(postComments);
+  console.log("\n\npost comments ", postComments, "\n\n");
 
   return (
     <div
       className={`${
-        isCommentBarOpen ? "  opacity-100 right-0" : " opacity-0 right-[-100%] "
+        isCommentBarOpen ? "opacity-100 right-0" : "opacity-0 right-[-100%] "
       } px-5 fixed top-0 bottom-0  bg-slate-800 shadow-lg w-96 z-30 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-500 transition-all duration-300 pt-20 `}
     >
       <div className="flex items-center justify-between">
@@ -47,13 +47,14 @@ export default function CommentBar({
   );
 }
 
-export function WriteComment({ name, onCommentSubmit }) {
+function WriteComment({ name, onCommentSubmit }) {
   const [message, setMessage] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (message.length > 0) {
-      const res = await onCommentSubmit(message);
+      await onCommentSubmit(message);
       setMessage("");
     }
   };
@@ -82,3 +83,6 @@ export function WriteComment({ name, onCommentSubmit }) {
     </div>
   );
 }
+
+CommentBar.whyDidYouRender = true;
+export default memo(CommentBar);

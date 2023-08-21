@@ -1,7 +1,7 @@
 module.exports = {
   friendlyName: "Mark as read",
 
-  description: "",
+  description: "Mark the unread messages as read.",
 
   inputs: {
     id: {
@@ -13,35 +13,28 @@ module.exports = {
   exits: {},
 
   fn: async function (inputs, exits) {
-    const token = this.req.session.authToken;
-    const { id: userId } = await sails.helpers.getUserFromToken(token);
+    try {
+      const userId = this.req.user.id;
 
-    console.log("inputs", inputs);
-    const { id: sender } = inputs;
-    // const sender = parseInt(this.req.query.sender);
-    // console.log("sender", sender);
+      const { id: sender } = inputs;
 
-    const chats = await Chat.find({
-      where: {
+      await Chat.update({
         sender,
         receiver: userId,
         readStatus: false,
-      },
-    });
+      }).set({
+        readStatus: true,
+      });
 
-    console.log("chats", chats);
-
-    await Chat.update({
-      sender,
-      receiver: userId,
-      readStatus: false,
-    }).set({
-      readStatus: true,
-    });
-
-    return exits.success({
-      message: "success",
-      sender,
-    });
+      return exits.success({
+        message: "success",
+        sender,
+      });
+    } catch (error) {
+      return exits.error({
+        message: "Something went wrong",
+        error,
+      });
+    }
   },
 };
