@@ -8,6 +8,7 @@ import { createBlog } from "../../api/postsApi";
 import { useSelector } from "react-redux";
 import { selectUser } from "../../app/services/auth/authSlice";
 import { createBlogOptions } from "../../api/postsSWROptions";
+import { toast } from "react-toastify";
 
 export default function Blog() {
   const navigate = useNavigate();
@@ -36,6 +37,7 @@ export default function Blog() {
       await mutate(createBlog(newBlog), createBlogOptions(newPost));
     } catch (error) {
       console.log(error);
+      toast.error("Something went wrong while creating the blog");
     }
   });
 
