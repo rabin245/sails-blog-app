@@ -65,19 +65,27 @@ function Chatbody({ io }) {
     };
 
     io.socket.on(`chat`, newChatMessageHandler);
-    const handleMarkAsRead = async (e) => {
-      await markAsReadMutation(id);
-    };
-    chatBodyRef.current.addEventListener("click", handleMarkAsRead);
 
     return () => {
       io.socket.off(`chat`, newChatMessageHandler);
+    };
+  }, [id]);
 
+  useEffect(() => {
+    const handleMarkAsRead = async (e) => {
+      if (currentContact && currentContact.count > 0) {
+        await markAsReadMutation(id);
+      }
+    };
+
+    chatBodyRef.current.addEventListener("click", handleMarkAsRead);
+
+    return () => {
       if (chatBodyRef.current) {
         chatBodyRef.current.removeEventListener("click", handleMarkAsRead);
       }
     };
-  }, [id]);
+  }, [id, currentContact, contactedUsers]);
 
   const sendChatMessageMutation = useCallback(
     async (message) => {
