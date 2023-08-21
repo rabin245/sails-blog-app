@@ -1,64 +1,167 @@
-import { useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router";
-import { getChat, postChat } from "../../utils/chat";
-import { useSelector } from "react-redux/es/hooks/useSelector";
 import { selectUser } from "../../app/services/auth/authSlice";
+import { useSelector } from "react-redux";
+import useSWR from "swr";
+import { chatConversationUrl, getChat, postChat } from "../../api/chatApi";
+import { postChatOptions } from "../../api/chatSWROptions";
+import { markAsRead } from "../../api/contactsApi";
+import { markAsReadOptions } from "../../api/contactsSWROptions";
+import useContactList from "../../hooks/useContactList";
+import { toast } from "react-toastify";
 
-export default function Chatbody({ io }) {
+function Chatbody({ io }) {
   const id = useParams().id;
   const user = useSelector(selectUser);
+  const chatBodyRef = useRef(null);
 
-  const [chats, setChats] = useState([]);
+  const {
+    isLoading,
+    error,
+    data: { conversation: chats } = {},
+    mutate,
+  } = useSWR(chatConversationUrl + id, getChat, {
+    onError: (err) => {
+      console.log(err);
+    },
+    onSuccess: (data) => {
+      console.log(data);
+    },
+  });
 
-  const contactedPerson = useSelector((state) => state.chat.contactedPerson);
+  const { contacts: contactedUsers, mutate: mutateContactsList } =
+    useContactList({ id });
 
   const currentContact = useMemo(() => {
-    const contact = contactedPerson.find((person) => person.id == id);
-    return contact ? contact.fullName : "";
-  }, [contactedPerson]);
+    if (contactedUsers) {
+      const contact = contactedUsers.find((person) => person.contact.id == id);
+      return contact;
+    }
+  }, [contactedUsers, id]);
 
   useEffect(() => {
-    io.socket.on("connect", () => {
-      console.log("connected");
-    });
+    console.log("running the useEffect of ChatBody");
 
-    io.socket.on(`chat`, (data) => {
+    const newChatMessageHandler = (data) => {
+      console.log("\n\n\nnew chat message event", data);
       if (
         (data.sender.id === user.id && data.receiver.id == id) ||
         (data.sender.id == id && data.receiver.id === user.id)
       ) {
-        setChats((prev) => [...prev, data]);
+        mutate((oldData) => {
+          return {
+            conversation: [...oldData.conversation, data],
+          };
+        }, false);
       }
-    });
+    };
+
+    io.socket.on(`chat`, newChatMessageHandler);
+
+    return () => {
+      io.socket.off(`chat`, newChatMessageHandler);
+    };
   }, []);
 
   useEffect(() => {
-    getChat(io, id, user.id).then((data) => {
-      setChats(data.conversation);
-    });
+    const handleMarkAsRead = async (e) => {
+      await markAsReadMutation(id);
+    };
+    chatBodyRef.current.addEventListener("click", handleMarkAsRead);
+
+    return () => {
+      if (chatBodyRef.current) {
+        chatBodyRef.current.removeEventListener("click", handleMarkAsRead);
+      }
+    };
   }, [id]);
 
+  const sendChatMessageMutation = useCallback(
+    async (message) => {
+      const newChat = {
+        createdAt: Date.now(),
+        message,
+        readStatus: false,
+        sender: user,
+        receiver: currentContact.contact,
+      };
+
+      try {
+        await mutate(postChat(id, message), postChatOptions(newChat));
+      } catch (error) {
+        console.error(error);
+        toast.error("Error sending message");
+      }
+    },
+    [currentContact, id]
+  );
+
+  const markAsReadMutation = useCallback(async (contactId) => {
+    try {
+      await mutateContactsList(
+        markAsRead(contactId),
+        markAsReadOptions(contactId)
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="w-4/5" ref={chatBodyRef}>
+        <ChatNavbar currentContact={currentContact} />
+
+        <div className="flex flex-col justify-between bg-slate-800 min-h-[calc(100vh-6.5rem)]">
+          <div className="max-h-[calc(100vh-10rem)] overflow-y-auto px-3 py-4 scrollbar-thin scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-500 scrollbar-thumb-rounded-lg">
+            <div>Loading...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="w-4/5" ref={chatBodyRef}>
+        <ChatNavbar currentContact={currentContact} />
+
+        <div className="flex flex-col justify-between bg-slate-800 min-h-[calc(100vh-6.5rem)]">
+          <div className="max-h-[calc(100vh-10rem)] overflow-y-auto px-3 py-4 scrollbar-thin scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-500 scrollbar-thumb-rounded-lg">
+            <div className="text-red-500">
+              <h1 className="text-xl text-center">Error</h1>
+              <p>{error.message}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  console.log("currentContact", currentContact);
+  console.log("chats", chats);
   return (
-    <div className="w-4/5">
+    <div className="w-4/5" ref={chatBodyRef}>
       <ChatNavbar currentContact={currentContact} />
 
       <div className="flex flex-col justify-between bg-slate-800 min-h-[calc(100vh-6.5rem)]">
         <div className="max-h-[calc(100vh-10rem)] overflow-y-auto px-3 py-4 scrollbar-thin scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-500 scrollbar-thumb-rounded-lg">
-          {chats.map((chat, index) => (
-            <div key={index} className="mb-1">
-              {chat.sender.id !== user.id && <RecievedMessage chat={chat} />}
+          {chats &&
+            chats.map((chat, index) => (
+              <div key={index} className="mb-1">
+                {chat.sender.id !== user.id && <RecievedMessage chat={chat} />}
 
-              {chat.sender.id === user.id && <SentMessage chat={chat} />}
-            </div>
-          ))}
+                {chat.sender.id === user.id && <SentMessage chat={chat} />}
+              </div>
+            ))}
         </div>
-        <MessageSendingForm io={io} id={id} user={user} />
+        <MessageSendingForm handleMessageSend={sendChatMessageMutation} />
       </div>
     </div>
   );
 }
 
-export const ChatNavbar = ({ currentContact }) => {
+const ChatNavbar = ({ currentContact }) => {
   return (
     <div className="flex items-center justify-between h-12 border-b border-gray-950 bg-slate-950">
       <div className="flex gap-2 items-center px-3">
@@ -68,13 +171,15 @@ export const ChatNavbar = ({ currentContact }) => {
           className="w-8 h-8 rounded-full"
         />
 
-        <h1 className="text-lg text-white font-bold">{currentContact}</h1>
+        <h1 className="text-lg text-white font-bold">
+          {currentContact ? currentContact.contact.fullName : ""}
+        </h1>
       </div>
     </div>
   );
 };
 
-export const RecievedMessage = ({ chat }) => {
+const RecievedMessage = ({ chat }) => {
   return (
     <div className="flex w-1/2">
       <div className="flex py-2 translate-y-2 ">
@@ -84,9 +189,13 @@ export const RecievedMessage = ({ chat }) => {
       </div>
 
       <div className="flex flex-col px-2 py-1 gap-1">
-        <div className="flex items-center text-gray-400 gap-3 text-xs">
+        <div className="flex items-center text-gray-400 gap-2 text-xs">
           <p>{chat.sender.fullName}</p>
-          <p>{new Date(chat.createdAt).toLocaleTimeString()}</p>
+          <p>
+            {new Date(chat.createdAt).toLocaleTimeString([], {
+              timeStyle: "short",
+            })}
+          </p>
         </div>
 
         <p className="bg-gray-600 px-2 py-1 rounded-xl w-fit break-words">
@@ -97,7 +206,7 @@ export const RecievedMessage = ({ chat }) => {
   );
 };
 
-export const SentMessage = ({ chat }) => {
+const SentMessage = ({ chat }) => {
   return (
     <div className="flex justify-end ">
       <div className="flex w-1/2 justify-end">
@@ -111,7 +220,7 @@ export const SentMessage = ({ chat }) => {
   );
 };
 
-export const MessageSendingForm = ({ io, id, user }) => {
+const MessageSendingForm = ({ handleMessageSend }) => {
   const [messsage, setMesssage] = useState("");
 
   const handleChange = (e) => {
@@ -120,11 +229,8 @@ export const MessageSendingForm = ({ io, id, user }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    postChat(io, id, user.id, messsage).then((data) => {
-      console.log(data);
-    });
-
     setMesssage("");
+    await handleMessageSend(messsage);
   };
   return (
     <div className="h-14">
@@ -150,3 +256,5 @@ export const MessageSendingForm = ({ io, id, user }) => {
     </div>
   );
 };
+
+export default memo(Chatbody);

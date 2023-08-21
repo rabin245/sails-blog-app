@@ -38,6 +38,11 @@ module.exports = {
 
       await Post.removeFromCollection(postId, "likers", userId);
 
+      sails.sockets.broadcast(`blog-room-${postId}`, "post-unliked", {
+        message: "Post unliked",
+        user: this.req.user,
+      });
+
       return exits.success({ message: "Post unliked successfully." });
     } catch (error) {
       return exits.serverError(error.message);

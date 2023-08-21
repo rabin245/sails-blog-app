@@ -20,6 +20,10 @@ module.exports = {
       type: "string",
       required: true,
     },
+    readStatus: {
+      type: "boolean",
+      defaultsTo: false,
+    },
 
     //  ╔═╗╦═╗╦╔╦╗╦╔╦╗╦╦  ╦╔═╗╔═╗
     //  ╠═╝╠╦╝║║║║║ ║ ║╚╗╔╝║╣ ╚═╗

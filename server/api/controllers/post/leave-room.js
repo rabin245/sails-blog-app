@@ -8,19 +8,34 @@ module.exports = {
   exits: {},
 
   fn: async function (inputs, exits) {
-    sails.sockets.leave(this.req, "blog-room", (err) => {
-      console.log(
-        "Socket left room: " + sails.sockets.getId(this.req) +
-          " from blog-room",
-      );
-      if (err) {
-        console.log(err);
-        exits.error(err);
+    try {
+      if (this.req.isSocket !== true) {
+        return exits.error({
+          message: "This is not a socket request",
+        });
       }
-    });
 
-    return exits.success({
-      message: "Left blog room successfully",
-    });
+      sails.sockets.leave(this.req, "blog-room", (err) => {
+        if (err) {
+          console.log(err);
+          return exits.error({
+            message: "Something went wrong when leaving blog room",
+          });
+        }
+
+        console.log(
+          "Socket left room: " + sails.sockets.getId(this.req) +
+            " from blog-room",
+        );
+      });
+
+      return exits.success({
+        message: "Left blog room successfully",
+      });
+    } catch (error) {
+      return exits.error({
+        message: "Something went wrong",
+      });
+    }
   },
 };

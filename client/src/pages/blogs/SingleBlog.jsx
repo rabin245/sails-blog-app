@@ -1,78 +1,209 @@
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { parseJSON } from "../../utils/parseJson";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { selectUser } from "../../app/services/auth/authSlice";
-import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
-import { FaRegComment } from "react-icons/fa";
-import { IoShareOutline } from "react-icons/io5";
-import { FiLink } from "react-icons/fi";
-import { useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import CommentBar from "./CommentBar";
 import ChatIcon from "../../component/chat/ChatIcon";
 import UserAvatar from "../../component/UserAvatar";
-import PostInteractionIcons from "../../component/blog/PostInteractionIcons";
+import { joinSingleRoom, leaveSingleRoom } from "../../utils/blogs";
 import {
   commentOnPost,
-  getBlogById,
+  getSinglePost,
   likePost,
-  selectCurrentBlog,
-  selectError,
-  selectIsCurrentBlogLiked,
-  selectIsError,
-  selectIsLoading,
   unlikePost,
-} from "../../app/services/blog/blogSlice";
+} from "../../api/singlePostApi";
+import useSWR from "swr";
+import LikesAndCommentsSection from "./LikesAndCommentsSection";
+import {
+  commentOnPostOptions,
+  likePostOptions,
+  unlikePostOptions,
+} from "../../api/singlePostSWROptions";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-export default function SingleBlog() {
-  const [isCommentBarOpen, setIsCommentBarOpen] = useState(false);
-
+function SingleBlog({ io }) {
   const { id } = useParams();
 
-  const dispatch = useDispatch();
+  const [isCommentBarOpen, setIsCommentBarOpen] = useState(false);
+
   const user = useSelector(selectUser);
 
-  useEffect(() => {
-    dispatch(getBlogById(id));
-  }, [dispatch, id]);
-
-  const currentBlog = useSelector(selectCurrentBlog);
-  const isLoading = useSelector(selectIsLoading);
-  const isError = useSelector(selectIsError);
-  const error = useSelector(selectError);
-  const isCurrentBlogLiked = useSelector(selectIsCurrentBlogLiked);
+  const {
+    isLoading,
+    error,
+    data: currentBlog,
+    mutate,
+  } = useSWR(`/api/posts/${id}`, getSinglePost, {
+    onError: (err) => {
+      console.log(err);
+    },
+    onSuccess: (data) => {
+      console.log(data);
+    },
+    revalidateOnFocus: false,
+  });
 
   const blog = useMemo(() => {
     if (currentBlog) {
       return {
-        ...currentBlog,
-        content: parseJSON(currentBlog.content),
+        ...currentBlog?.post,
+        content: parseJSON(currentBlog?.post?.content),
       };
     }
   }, [currentBlog]);
 
   const postComments = useMemo(() => {
     if (currentBlog) {
-      return currentBlog.comments;
+      return currentBlog.post.comments;
     }
   }, [currentBlog]);
 
-  const noOfPostLikers = currentBlog?.likers?.length || 0;
+  const postLikers = useMemo(() => {
+    if (currentBlog) {
+      return currentBlog.post.likers;
+    }
+  }, [currentBlog]);
 
-  const onCommentSubmit = (message) => {
-    dispatch(commentOnPost({ postId: id, content: message }));
-  };
+  useEffect(() => {
+    joinSingleRoom(io, id).then((data) => {
+      // console.log("Joined single room");
+      // console.log(data);
+    });
 
-  const handlePostLike = () => {
-    dispatch(likePost(id));
-  };
+    const postLikedHandlerFunction = (data) => {
+      console.log("\n\nnew post like event");
+      console.log(data);
 
-  const handlePostUnlike = () => {
-    dispatch(unlikePost(id));
-  };
+      if (user && data.user.id == user.id) {
+        console.log("Post liked by current user so returning");
+        return;
+      }
 
-  const toggleCommentBar = () => {
-    setIsCommentBarOpen(!isCommentBarOpen);
-  };
+      mutate((prev) => {
+        const newPost = {
+          ...prev,
+          post: {
+            ...prev.post,
+            likers: [...prev.post.likers, data.user],
+          },
+          numberOfLikes: prev.numberOfLikes + 1,
+        };
+
+        return newPost;
+      }, false);
+    };
+
+    const postUnlikeHandlerFunction = (data) => {
+      console.log("\n\nnew post unlike event");
+      console.log(data);
+
+      if (user && data.user.id == user.id) {
+        console.log("Post unliked by current user so returning");
+        return;
+      }
+
+      mutate((prev) => {
+        const newPost = {
+          ...prev,
+          post: {
+            ...prev.post,
+            likers: prev.post.likers.filter(
+              (liker) => liker.id != data.user.id
+            ),
+          },
+          numberOfLikes: prev.numberOfLikes - 1,
+        };
+
+        return newPost;
+      }, false);
+    };
+
+    const commentCreatedHandlerFunction = (data) => {
+      console.log("\n\nnew comment created event");
+      console.log(data);
+      const { comment } = data;
+
+      mutate((prev) => {
+        const newPost = {
+          ...prev,
+          post: {
+            ...prev.post,
+            comments: [...prev.post.comments, comment],
+          },
+        };
+
+        return newPost;
+      }, false);
+    };
+
+    io.socket.on("post-liked", postLikedHandlerFunction);
+    io.socket.on("post-unliked", postUnlikeHandlerFunction);
+    io.socket.on("comment-created", commentCreatedHandlerFunction);
+
+    return () => {
+      leaveSingleRoom(io, id).then((data) => {
+        // console.log("Left single room");
+        // console.log(data);
+      });
+
+      io.socket.off("post-liked", postLikedHandlerFunction);
+
+      io.socket.off("post-unliked", postUnlikeHandlerFunction);
+
+      io.socket.off("comment-created", commentCreatedHandlerFunction);
+    };
+  }, []);
+
+  const commentOnPostMutation = useCallback(async (comment) => {
+    const newComment = {
+      createdAt: Date.now(),
+      content: comment,
+      user: {
+        fullName: user.fullName,
+        id: user.id,
+      },
+      post: id,
+    };
+
+    try {
+      await mutate(
+        commentOnPost(id, comment),
+        commentOnPostOptions(newComment)
+      );
+    } catch (error) {
+      console.log(error);
+      toast.error("Error commenting on post");
+    }
+  }, []);
+
+  const likePostMutation = useCallback(async () => {
+    const newLiker = {
+      fullName: user.fullName,
+      id: user.id,
+    };
+
+    try {
+      await mutate(likePost(id), likePostOptions(newLiker));
+    } catch (error) {
+      console.log(error);
+      toast.error("Error liking post");
+    }
+  }, []);
+
+  const unlikePostMutation = useCallback(async () => {
+    try {
+      await mutate(unlikePost(id), unlikePostOptions(user.id));
+    } catch (error) {
+      console.log(error);
+      toast.error("Error unliking post");
+    }
+  }, []);
+
+  const toggleCommentBar = useCallback(() => {
+    setIsCommentBarOpen((prev) => !prev);
+  }, [isCommentBarOpen, setIsCommentBarOpen]);
 
   const layout = (content) => {
     return (
@@ -83,15 +214,6 @@ export default function SingleBlog() {
           </div>
         </div>
         <ChatIcon />
-        {user && (
-          <CommentBar
-            toggleCommentBar={toggleCommentBar}
-            isCommentBarOpen={isCommentBarOpen}
-            postComments={postComments}
-            user={user}
-            onCommentSubmit={onCommentSubmit}
-          />
-        )}
       </div>
     );
   };
@@ -100,7 +222,7 @@ export default function SingleBlog() {
     return layout(<div>Loading...</div>);
   }
 
-  if (isError) {
+  if (error) {
     return layout(
       <div className="text-red-500">
         <h1 className="text-xl text-center">Error</h1>
@@ -110,135 +232,41 @@ export default function SingleBlog() {
   }
 
   return layout(
-    <div className=" bg-slate-800 py-5 px-10 rounded-xl shadow-2xl w-full">
-      <h1 className="text-4xl font-bold mb-5">{blog?.title}</h1>
+    <>
+      <div className=" bg-slate-800 py-5 px-10 rounded-xl shadow-2xl w-full">
+        <h1 className="text-4xl font-bold mb-5">{blog?.title}</h1>
 
-      <BlogMetaData blog={blog} user={user} />
+        <BlogMetaData blog={blog} user={user} />
 
-      <LikesAndCommentsSection
-        toggleCommentBar={toggleCommentBar}
-        isCommentBarOpen={isCommentBarOpen}
-        noOfLikers={noOfPostLikers}
-        comments={postComments}
-        user={user}
-        isLiked={isCurrentBlogLiked}
-        handlePostLike={handlePostLike}
-        handlePostUnlike={handlePostUnlike}
-      />
+        <LikesAndCommentsSection
+          toggleCommentBar={toggleCommentBar}
+          isCommentBarOpen={isCommentBarOpen}
+          comments={postComments}
+          user={user}
+          handlePostLike={likePostMutation}
+          handlePostUnlike={unlikePostMutation}
+          postLikers={postLikers}
+        />
 
-      <div
-        className="pe-2 text-xl max-w-[80vw]  break-words"
-        dangerouslySetInnerHTML={blog?.content}
-      ></div>
-    </div>
-  );
-}
-
-export function LikesAndCommentsSection({
-  toggleCommentBar,
-  noOfLikers,
-  isLiked,
-  comments,
-  user,
-  handlePostLike,
-  handlePostUnlike,
-}) {
-  const navigate = useNavigate();
-
-  const [isPostLiked, setIsPostLiked] = useState(isLiked || false);
-  const [noOfPostLikers, setNoOfLikers] = useState(noOfLikers || 0);
-
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-
-  const toggleLike = async () => {
-    if (!user) {
-      navigate("/login");
-      return;
-    }
-
-    setIsPostLiked((prev) => !prev);
-
-    if (isPostLiked) {
-      console.log("unliking");
-      setNoOfLikers((prev) => prev - 1);
-      handlePostUnlike();
-    } else {
-      console.log("liking post");
-      setNoOfLikers((prev) => prev + 1);
-      handlePostLike();
-    }
-  };
-
-  const toggleComment = () => {
-    if (!user) {
-      navigate("/login");
-      return;
-    }
-
-    toggleCommentBar();
-  };
-
-  const toggleShare = () => {
-    setIsShareModalOpen(!isShareModalOpen);
-  };
-
-  const copyToClipboard = () => {
-    const url = window.location.href;
-    navigator.clipboard
-      .writeText(url)
-      .then(() => {
-        toggleShare();
-        alert("Link copied to clipboard!");
-      })
-      .catch((error) => {
-        console.error("Failed to copy link:", error);
-      });
-  };
-
-  return (
-    <div>
-      <div className="flex p-2 border-y border-gray-600 mb-10 relative gap-2 items-center">
-        <PostInteractionIcons value={noOfPostLikers}>
-          {isPostLiked ? (
-            <AiFillHeart
-              className="text-2xl cursor-pointer"
-              onClick={toggleLike}
-              fill="red"
-            />
-          ) : (
-            <AiOutlineHeart
-              className="text-2xl cursor-pointer"
-              onClick={toggleLike}
-            />
-          )}
-        </PostInteractionIcons>
-        <PostInteractionIcons value={comments?.length}>
-          <FaRegComment
-            className="text-2xl ml-10 cursor-pointer"
-            onClick={toggleComment}
-          />
-        </PostInteractionIcons>
-        <PostInteractionIcons>
-          <IoShareOutline
-            className="text-2xl ml-auto cursor-pointer"
-            onClick={toggleShare}
-          />
-        </PostInteractionIcons>
         <div
-          onClick={copyToClipboard}
-          className={`${
-            isShareModalOpen ? "opacity-100" : "opacity-0"
-          } cursor-pointer flex gap-2 items-center justify-center mb-10 absolute right-2 top-10  w-36 py-2  bg-slate-700 shadow-md text-center`}
-        >
-          <FiLink className="text-2xl" />
-          <span>Copy Link</span>
-        </div>
+          className="pe-2 text-xl max-w-[80vw]  break-words"
+          dangerouslySetInnerHTML={blog?.content}
+        ></div>
       </div>
-    </div>
+      {user && (
+        <CommentBar
+          toggleCommentBar={toggleCommentBar}
+          isCommentBarOpen={isCommentBarOpen}
+          postComments={postComments}
+          user={user}
+          onCommentSubmit={commentOnPostMutation}
+        />
+      )}
+    </>
   );
 }
 
-export function BlogMetaData({ blog, user }) {
+function BlogMetaData({ blog, user }) {
   return (
     <div className="flex gap-2 items-center mb-10">
       <UserAvatar name={blog?.author?.fullName} customStyle={"h-10 w-10"} />
@@ -262,3 +290,6 @@ export function BlogMetaData({ blog, user }) {
     </div>
   );
 }
+
+SingleBlog.whyDidYouRender = true;
+export default memo(SingleBlog);

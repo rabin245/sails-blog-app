@@ -1,44 +1,36 @@
-import { useEffect } from "react";
+import { memo, useEffect } from "react";
 import BlogCard from "../../component/blog/BlogCard";
-import { useDispatch, useSelector } from "react-redux";
-import {
-  addBlog,
-  getBlogs,
-  selectBlogs,
-  selectError,
-  selectIsError,
-  selectIsLoading,
-} from "../../app/services/blog/blogSlice";
 import ChatIcon from "../../component/chat/ChatIcon";
+import { joinRoom, leaveRoom } from "../../utils/blogs";
+import useBlogsList from "../../hooks/useBlogsList";
+import { preload } from "swr";
+import { getBlogs } from "../../api/postsApi";
 
-export default function Blogs({ io }) {
-  const dispatch = useDispatch();
+preload("/api/posts", getBlogs);
 
-  const blogs = useSelector(selectBlogs);
-  const isLoading = useSelector(selectIsLoading);
-  const isError = useSelector(selectIsError);
-  const error = useSelector(selectError);
+function Blogs({ io }) {
+  const { isLoading, error, blogs, mutate } = useBlogsList();
 
   useEffect(() => {
-    io.socket.get("/join-blog", function (body, response) {
-      console.log("\n\nSails responded with: ", body);
-      console.log("with headers: ", response.headers);
-      console.log("and with status code: ", response.statusCode, "\n\n");
+    joinRoom(io).then((data) => {
+      // console.log(data);
     });
 
-    io.socket.on("new-post", function ({ post }) {
-      console.log("new post", post);
-      dispatch(addBlog(post));
-    });
+    const handlerFunction = ({ post }) => {
+      console.log("new post event", post);
+      mutate((oldData) => ({
+        posts: [...oldData.posts, post],
+      }));
+    };
 
-    dispatch(getBlogs());
+    io.socket.on("new-post", handlerFunction);
 
     return () => {
-      io.socket.get("/leave-blog", function (body, response) {
-        console.log("\n\nSails responded with: ", body);
-        console.log("with headers: ", response.headers);
-        console.log("and with status code: ", response.statusCode, "\n\n");
+      leaveRoom(io).then((data) => {
+        // console.log(data);
       });
+
+      io.socket.off("new-post", handlerFunction);
     };
   }, []);
 
@@ -60,20 +52,26 @@ export default function Blogs({ io }) {
     return layout(<div>Loading...</div>);
   }
 
-  if (isError) {
+  if (error) {
     return layout(
       <div className="text-red-500">
         <h1 className="text-xl text-center">Error</h1>
         <p>{error.message}</p>
-      </div>,
+      </div>
     );
   }
 
-  const content = (blogs && blogs.length > 0)
-    ? (blogs.slice().reverse().map((blog, index) => (
-      <BlogCard key={index} blog={blog} />
-    )))
-    : <div className="text-2xl font-bold">No blogs yet</div>;
+  const content =
+    blogs && blogs.length > 0 ? (
+      blogs
+        .slice()
+        .reverse()
+        .map((blog, index) => <BlogCard key={index} blog={blog} />)
+    ) : (
+      <div className="text-2xl font-bold">No blogs yet</div>
+    );
 
   return layout(content);
 }
+
+export default memo(Blogs);

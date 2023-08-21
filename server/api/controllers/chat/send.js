@@ -1,13 +1,9 @@
 module.exports = {
-  friendlyName: "Send",
+  friendlyName: "Send chat message",
 
-  description: "Send chat.",
+  description: "Send a chat message to another user.",
 
   inputs: {
-    senderId: {
-      type: "number",
-      required: true,
-    },
     receiverId: {
       type: "number",
       required: true,
@@ -29,7 +25,7 @@ module.exports = {
 
   fn: async function (inputs, exits) {
     try {
-      const sender = inputs.senderId;
+      const sender = this.req.user.id;
       const receiver = inputs.receiverId;
       const message = inputs.message;
 
@@ -45,8 +41,6 @@ module.exports = {
         .populate("sender")
         .populate("receiver");
 
-      console.log(chat, populatedChat);
-
       if (chat) {
         sails.sockets.broadcast(`user-${receiver}`, "chat", {
           ...populatedChat,
@@ -55,6 +49,18 @@ module.exports = {
           ...populatedChat,
         });
       }
+
+      const contact = await User.findOne({ id: sender });
+      const count = await Chat.count({
+        sender: sender,
+        receiver: receiver,
+        readStatus: false,
+      });
+
+      sails.sockets.broadcast(`user-${receiver}`, "unreadCount", {
+        contact,
+        count,
+      });
 
       return exits.success({
         message: "Chat sent successfully",

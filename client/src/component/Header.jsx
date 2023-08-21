@@ -64,8 +64,8 @@ export default function Header() {
               />
 
               <div
-                className={`w-40 absolute  right-0 top-12 bg-slate-700  py-2 shadow-lg rounded-lg ${
-                  showModal ? "opacity-100" : "opacity-0"
+                className={`w-40 absolute right-0 top-12 bg-slate-700  py-2 shadow-lg rounded-lg ${
+                  showModal ? "block" : "hidden"
                 }`}
               >
                 <div className="flex flex-col text-sm font-medium  items-center gap-2">

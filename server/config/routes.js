@@ -52,10 +52,13 @@ module.exports.routes = {
 
   "GET /join-blog": "post/join-room",
   "GET /leave-blog": "post/leave-room",
+  "GET /join-blog/:id": "post/join-single-blog-room",
+  "GET /leave-blog/:id": "post/leave-single-blog-room",
 
   "GET /chat/conversations": "chat/get-conversation",
   "POST /chat/send": "chat/send",
-  "GET /chat/person-contacts": "chat/get-person-contacts",
+  "GET /chat/contact-list": "chat/get-contact-list",
   "GET /chat/join-room": "chat/join-room",
-  "GET /user/:id": "user/get-user",
+  "GET /chat/leave-room": "chat/leave-room",
+  "PUT /chat/mark-read/:id": "chat/mark-as-read",
 };

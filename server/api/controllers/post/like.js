@@ -39,6 +39,11 @@ module.exports = {
 
       await Post.addToCollection(postId, "likers", userId);
 
+      sails.sockets.broadcast(`blog-room-${postId}`, "post-liked", {
+        message: "Post liked",
+        user: this.req.user,
+      });
+
       return exits.success({ message: "Post liked." });
     } catch (error) {
       return exits.serverError(error.message);

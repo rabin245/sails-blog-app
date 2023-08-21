@@ -29,11 +29,11 @@ module.exports.policies = {
   "post/like": "is-logged-in",
   "post/unlike": "is-logged-in",
   "post/comment": "is-logged-in",
-  //
-  // session not working with socket virtual requests
-  // "chat/get-conversation": "is-logged-in",
-  // "chat/get-person-contacts": "is-logged-in",
-  // "chat/send": "is-logged-in",
-  // "chat/join-room": "is-logged-in",
-  "user/get-user": "is-logged-in",
+
+  "chat/get-conversation": ["is-logged-in", "receiver-exists"],
+  "chat/get-contact-list": "is-logged-in",
+  "chat/send": ["is-logged-in", "receiver-exists"],
+  "chat/join-room": "is-logged-in",
+  "chat/leave-room": "is-logged-in",
+  "chat/mark-as-read": "is-logged-in",
 };
