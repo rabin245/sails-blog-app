@@ -8,6 +8,7 @@ import { postChatOptions } from "../../api/chatSWROptions";
 import { markAsRead } from "../../api/contactsApi";
 import { markAsReadOptions } from "../../api/contactsSWROptions";
 import useContactList from "../../hooks/useContactList";
+import { ToastContainer, toast } from "react-toastify";
 
 function Chatbody({ io }) {
   const id = useParams().id;
@@ -89,6 +90,7 @@ function Chatbody({ io }) {
         await mutate(postChat(id, message), postChatOptions(newChat));
       } catch (error) {
         console.error(error);
+        toast.error("Error sending message");
       }
     },
     [currentContact, id]
@@ -155,6 +157,18 @@ function Chatbody({ io }) {
         </div>
         <MessageSendingForm handleMessageSend={sendChatMessageMutation} />
       </div>
+
+      <ToastContainer
+        position="bottom-left"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+      />
     </div>
   );
 }
