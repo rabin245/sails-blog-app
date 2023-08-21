@@ -3,6 +3,10 @@ import BlogCard from "../../component/blog/BlogCard";
 import ChatIcon from "../../component/chat/ChatIcon";
 import { joinRoom, leaveRoom } from "../../utils/blogs";
 import useBlogsList from "../../hooks/useBlogsList";
+import { preload } from "swr";
+import { getBlogs } from "../../api/postsApi";
+
+preload("/api/posts", getBlogs);
 
 function Blogs({ io }) {
   const { isLoading, error, blogs, mutate } = useBlogsList();
