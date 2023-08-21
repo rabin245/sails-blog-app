@@ -54,8 +54,8 @@ function WriteComment({ name, onCommentSubmit }) {
     e.preventDefault();
 
     if (message.length > 0) {
-      await onCommentSubmit(message);
       setMessage("");
+      await onCommentSubmit(message);
     }
   };
 
