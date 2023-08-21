@@ -43,11 +43,7 @@ function Chatbody({ io }) {
     console.log("running the useEffect of ChatBody");
 
     const newChatMessageHandler = (data) => {
-      console.log("\n\n\nnew chat message event", data);
-      if (
-        (data.sender.id === user.id && data.receiver.id == id) ||
-        (data.sender.id == id && data.receiver.id === user.id)
-      ) {
+      if (data.sender.id == id && data.receiver.id === user.id) {
         mutate((oldData) => {
           return {
             conversation: [...oldData.conversation, data],
@@ -57,19 +53,14 @@ function Chatbody({ io }) {
     };
 
     io.socket.on(`chat`, newChatMessageHandler);
-
-    return () => {
-      io.socket.off(`chat`, newChatMessageHandler);
-    };
-  }, []);
-
-  useEffect(() => {
     const handleMarkAsRead = async (e) => {
       await markAsReadMutation(id);
     };
     chatBodyRef.current.addEventListener("click", handleMarkAsRead);
 
     return () => {
+      io.socket.off(`chat`, newChatMessageHandler);
+
       if (chatBodyRef.current) {
         chatBodyRef.current.removeEventListener("click", handleMarkAsRead);
       }
