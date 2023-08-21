@@ -20,6 +20,8 @@ import {
   likePostOptions,
   unlikePostOptions,
 } from "../../api/singlePostSWROptions";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function SingleBlog({ io }) {
   const { id } = useParams();
@@ -172,6 +174,7 @@ function SingleBlog({ io }) {
       );
     } catch (error) {
       console.log(error);
+      toast.error("Error commenting on post");
     }
   }, []);
 
@@ -185,6 +188,7 @@ function SingleBlog({ io }) {
       await mutate(likePost(id), likePostOptions(newLiker));
     } catch (error) {
       console.log(error);
+      toast.error("Error liking post");
     }
   }, []);
 
@@ -193,6 +197,7 @@ function SingleBlog({ io }) {
       await mutate(unlikePost(id), unlikePostOptions(user.id));
     } catch (error) {
       console.log(error);
+      toast.error("Error unliking post");
     }
   }, []);
 
