@@ -14,6 +14,7 @@ function Chatbody({ io }) {
   const id = useParams().id;
   const user = useSelector(selectUser);
   const chatBodyRef = useRef(null);
+  const messagesContainerRef = useRef(null);
 
   const {
     isLoading,
@@ -38,6 +39,17 @@ function Chatbody({ io }) {
       return contact;
     }
   }, [contactedUsers, id]);
+
+  function scrollToBottom() {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop =
+        messagesContainerRef.current.scrollHeight;
+    }
+  }
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [chats]);
 
   useEffect(() => {
     console.log("running the useEffect of ChatBody");
@@ -136,7 +148,10 @@ function Chatbody({ io }) {
       <ChatNavbar currentContact={currentContact} />
 
       <div className="flex flex-col justify-between bg-slate-800 min-h-[calc(100vh-6.5rem)]">
-        <div className="max-h-[calc(100vh-10rem)] overflow-y-auto px-3 py-4 scrollbar-thin scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-500 scrollbar-thumb-rounded-lg">
+        <div
+          ref={messagesContainerRef}
+          className="max-h-[calc(100vh-10rem)] overflow-y-auto px-3 py-4 scrollbar-thin scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-500 scrollbar-thumb-rounded-lg"
+        >
           {chats &&
             chats.map((chat, index) => (
               <div key={index} className="mb-1">
