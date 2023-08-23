@@ -14,6 +14,7 @@ function Chatbody({ io }) {
   const id = useParams().id;
   const user = useSelector(selectUser);
   const chatBodyRef = useRef(null);
+  const messagesContainerRef = useRef(null);
 
   const {
     isLoading,
@@ -39,15 +40,22 @@ function Chatbody({ io }) {
     }
   }, [contactedUsers, id]);
 
+  function scrollToBottom() {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop =
+        messagesContainerRef.current.scrollHeight;
+    }
+  }
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [chats]);
+
   useEffect(() => {
     console.log("running the useEffect of ChatBody");
 
     const newChatMessageHandler = (data) => {
-      console.log("\n\n\nnew chat message event", data);
-      if (
-        (data.sender.id === user.id && data.receiver.id == id) ||
-        (data.sender.id == id && data.receiver.id === user.id)
-      ) {
+      if (data.sender.id == id && data.receiver.id === user.id) {
         mutate((oldData) => {
           return {
             conversation: [...oldData.conversation, data],
@@ -61,12 +69,15 @@ function Chatbody({ io }) {
     return () => {
       io.socket.off(`chat`, newChatMessageHandler);
     };
-  }, []);
+  }, [id]);
 
   useEffect(() => {
     const handleMarkAsRead = async (e) => {
-      await markAsReadMutation(id);
+      if (currentContact && currentContact.count > 0) {
+        await markAsReadMutation(id);
+      }
     };
+
     chatBodyRef.current.addEventListener("click", handleMarkAsRead);
 
     return () => {
@@ -74,7 +85,7 @@ function Chatbody({ io }) {
         chatBodyRef.current.removeEventListener("click", handleMarkAsRead);
       }
     };
-  }, [id]);
+  }, [id, currentContact, contactedUsers]);
 
   const sendChatMessageMutation = useCallback(
     async (message) => {
@@ -145,7 +156,10 @@ function Chatbody({ io }) {
       <ChatNavbar currentContact={currentContact} />
 
       <div className="flex flex-col justify-between bg-slate-800 min-h-[calc(100vh-6.5rem)]">
-        <div className="max-h-[calc(100vh-10rem)] overflow-y-auto px-3 py-4 scrollbar-thin scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-500 scrollbar-thumb-rounded-lg">
+        <div
+          ref={messagesContainerRef}
+          className="max-h-[calc(100vh-10rem)] overflow-y-auto px-3 py-4 scrollbar-thin scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-500 scrollbar-thumb-rounded-lg"
+        >
           {chats &&
             chats.map((chat, index) => (
               <div key={index} className="mb-1">
